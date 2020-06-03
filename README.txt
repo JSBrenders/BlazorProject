@@ -29,13 +29,12 @@ Voici un récapitulatif du projet :
 - La création de ce site est vouée à l'apprentissage et la pratique de Blazor. Il s'agit d'un jeu en ligne appelé English Battle. Le but est de mettre au défi sa 
 connaissance des verbes irréguliers anglais. 
 
-- Le site se compose de 4 modules :	- l'authentification
-									- l'inscription
-									- les meilleurs scores
-									- le jeu
+- Le site se compose de 4 modules :	l'authentification, l'inscription, les meilleurs scores, le jeu	
 
-- Le site est une SPA (Single Page App). Chaque module est construit de la même manière : un composant razor (/Pages) qui appelle des controllers (/Data/InterfaceDB)
-et des services.
+- C'est est une SPA (Single Page App). Chaque module est construit de la même manière : un composant razor (/Pages) qui appelle des controllers (/Data/InterfaceDB)
+et des services. Les composants sont rendus dynamiquement au sein d'une page conteneur (/Pages/_Host) qui va contenir les métas-données. La page Host appelle
+le composant razor App.razor qui lui-même fait office de controller d'URL et renvoie un message d'erreur en cas d'URL inconnue. Le composant App
+appelle le composant MainLayout.razor (/Shared/MainLayout.razor) qui rend dynamiquement le composant appelé par l'URL.
 
 - La base de données est générée via les classes de modèles (/Models) et EntityFramework (Startup.cs lignes 76 - Database.Migrate()). EF utilise le dernier script de 
 migration généré (ProjetTp1ContextModelSnapshot.cs) pour construire la BDD (/Migrations).
