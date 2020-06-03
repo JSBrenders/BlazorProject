@@ -5,7 +5,6 @@ requis :
 
 - ASP.NET CORE 3.1
 
-
 --- Entity Framework Core ---
 
 Version 2.4.0.0
