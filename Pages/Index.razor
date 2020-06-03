@@ -1,0 +1,38 @@
+﻿@page "/"
+@inject IJSRuntime JSRuntime
+
+
+
+
+<AuthorizeView>
+    <Authorized>
+        <div id="titre" class="d-flex justify-content-center align-content-center">
+            <div id="ovale" class="d-flex justify-content-center align-items-center p-5">
+                <h1 class="font-weight-bolder w-auto">Bienvenue dans English Battle ! Prêt à relever le défi ?</h1>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+@code
+{
+ 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeAsync<string>("GetDivToWindowSize", "titre");
+        }
+    }
+
+    public async void resize()
+    {
+        await JSRuntime.InvokeAsync<object>("GetDivToWindowSize", "titre");
+    }
+
+}

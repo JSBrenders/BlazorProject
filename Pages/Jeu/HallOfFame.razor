@@ -1,0 +1,259 @@
+﻿@page "/HallOfFame"
+@attribute [Authorize]
+@inject PartiesController partieController
+@inject JoueursController joueurController
+@inject NavigationManager nav
+
+@*<div class="align-content-center">*@
+    <div class="d-flex justify-content-center">
+        <h1 class="mt-5 font-weight-bold">Hall of Fame</h1>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <select class="custom-select w-25" value="@Difficulty" @onchange="UpdateTable">
+            <option value="6">Toutes les difficultés</option>
+            <option value="0">Très Facile</option>
+            <option value="1">Facile</option>
+            <option value="2">Normal</option>
+            <option value="3">Difficile</option>
+            <option value="4">Très Difficile</option>
+        </select>
+
+        <div class="row">
+            <label class="label">Nombre d'éléments</label>
+            <div class="ml-2 mr-4">
+                <select class="custom-select-sm" value="@Size" @onchange="Refresh">
+                    <option selected value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+
+    </div>
+@*</div>*@
+
+@if(loading)
+{
+    <p>Loading ...</p>
+}
+else
+{
+    <table class="mt-5 table table-dark table-striped">
+        <thead>
+            <tr>
+                <td class="text-center"><strong>Rang</strong></td>
+                <td class="text-center"><strong>Score</strong></td>
+                <td class="text-center"><strong>Difficulté</strong></td>
+                <td class="text-center"><strong>Pseudonyme</strong></td>
+            </tr>
+        </thead>
+        <tbody>
+            @if(HighScoreParties.Count() > 0)
+            {
+                int i = 0;
+                @foreach(highScoreParties partie in HighScoreParties)
+                {
+                    if(i >= Size)
+                    {
+                        break;
+                    }
+                    if(partie.rank == 1)
+                    {
+                        rang = "Premier";
+                    }
+                    else if(partie.rank == 2)
+                    {
+                        rang = "Second";
+                    }
+                    else if(partie.rank == 3)
+                    {
+                        rang = "Troisième";
+                    }
+                    else
+                    {
+                        rang = partie.rank.ToString();
+                    }
+                    <tr>
+                        <td class="text-center">@rang</td>
+                        <td class="text-center">@partie.partie.Score</td>
+                        @switch (partie.partie.Difficulty)
+                        {
+                            case 0:
+                                <td class="text-center">Très Facile</td>
+                                break;
+                            case 1:
+                                <td class="text-center">Facile</td>
+                                break;
+                            case 2:
+                                <td class="text-center">Normal</td>
+                                break;
+                            case 3:
+                                <td class="text-center">Difficile</td>
+                                break;
+                            case 4:
+                                <td class="text-center">Très Difficile</td>
+                                break;
+
+                        }
+                        <td class="text-center">@partie.joueur.Username</td>
+                    </tr>
+                    i++;
+                }
+            }
+            else 
+            {
+                <tr>
+                    <td class="text-center" colspan="3">Vous êtes le premier joueur de cette catégorie ! Bonne chanche !</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+
+    //création structure de récupération des meilleurs parties par joueurs
+    public class highScoreParties
+    {
+        public Partie partie;
+        public Joueur joueur;
+        public highScoreParties(Partie _partie, Joueur _joueur)
+        {
+            partie = _partie;
+            joueur = _joueur;
+        }
+        public int rank;
+    }
+
+    //déclaration des variables
+    List<highScoreParties> HighScoreParties;
+    List<int> ListeIdJoueur;
+    List<Partie> ListeParties;
+    bool loading;
+    string rang;
+    int _Difficulty;
+    int Size;
+    
+    private int Difficulty
+    {
+        get { return _Difficulty; }
+        set
+        {
+            _Difficulty = value;
+        }
+    }
+
+    public void Refresh(ChangeEventArgs size)
+    {
+        Size = Int32.Parse(size.Value.ToString());
+        StateHasChanged();
+    }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        Size = 10;
+        Difficulty = 6;
+        //initialisation des variables
+        HighScoreParties = new List<highScoreParties>();
+        ListeIdJoueur = new List<int>();
+        ListeParties = new List<Partie>();
+        //début de chargement
+        loading = true;
+        await UpdateTable(Difficulty);
+    }
+
+    //fonction onchange du select
+    public async Task UpdateTable(ChangeEventArgs difficulty)
+    {
+        loading = true;
+        Difficulty = Int32.Parse(difficulty.Value.ToString());
+
+        //appels base de données, récupération des informations nécéssaires au classement
+        ListeIdJoueur = await (nav.BaseUri + "api/Joueurs/liste").GetJsonAsync<List<int>>();
+        ListeParties = await (nav.BaseUri + "api/Parties/liste").GetJsonAsync<List<Partie>>();
+        //on vide la liste des parties précédentes
+        HighScoreParties.Clear();
+
+        if (ListeIdJoueur.Count > 0)
+        {
+            foreach (int Id in ListeIdJoueur)
+            {
+                if (Difficulty == 6)
+                {
+                    var highScore = await (nav.BaseUri + "api/Parties/highscore/" + Id).GetJsonAsync<Partie>();
+                    if (highScore != null)
+                    {
+                        if (highScore.Score > 0)
+                        {
+                            Joueur joueur = await (nav.BaseUri + "api/Joueurs/" + highScore.IdJoueur).GetJsonAsync<Joueur>();
+                            HighScoreParties.Add(new highScoreParties(highScore, joueur));
+                        }
+                    }
+                }
+                else
+                {
+                    var highScore = await (nav.BaseUri + "api/Parties/highscore/" + Id + "/" + Difficulty).GetJsonAsync<Partie>();
+                    if (highScore != null)
+                    {
+                        if (highScore.Score > 0)
+                        {
+                            Joueur joueur = await (nav.BaseUri + "api/Joueurs/" + highScore.IdJoueur).GetJsonAsync<Joueur>();
+                            HighScoreParties.Add(new highScoreParties(highScore, joueur));
+                        }
+                    }
+                }
+            }
+        }
+
+        //trie et limitation de capacité de la liste des parties
+        HighScoreParties = HighScoreParties.OrderByDescending(x => x.partie.Score).ToList();
+        for(int i = 0; i < HighScoreParties.Count(); i++)
+        {
+            HighScoreParties[i].rank = i + 1;
+        }
+        //fin de chargement
+        loading = false;
+        StateHasChanged();
+    }
+
+    //fonction initialisation
+    public async Task UpdateTable(int difficulty)
+    {
+        loading = true;
+        //appel base de données, récupération des informations nécéssaires au classement
+        ListeIdJoueur = await (nav.BaseUri + "api/Joueurs/liste").GetJsonAsync<List<int>>();
+        ListeParties = await (nav.BaseUri + "api/Parties/liste").GetJsonAsync<List<Partie>>();
+        HighScoreParties.Clear();
+
+        if (ListeIdJoueur.Count > 0)
+        {
+            foreach (int Id in ListeIdJoueur)
+            {
+                var highScore = await (nav.BaseUri + "api/Parties/highscore/" + Id).GetJsonAsync<Partie>();
+                if (highScore != null)
+                {
+                    if (highScore.Score > 0 & (highScore.Difficulty == difficulty || difficulty == 6))
+                    {
+                        Joueur joueur = await (nav.BaseUri + "api/Joueurs/" + highScore.IdJoueur).GetJsonAsync<Joueur>();
+                        HighScoreParties.Add(new highScoreParties(highScore, joueur));
+                    }
+                }
+            }
+        }
+
+        //trie et limitation de capacité de la liste des parties
+        HighScoreParties = HighScoreParties.OrderByDescending(x => x.partie.Score).ToList();
+        for(int i = 0; i < HighScoreParties.Count(); i++)
+        {
+            HighScoreParties[i].rank = i + 1;
+        }
+        //fin de chargement
+        loading = false;
+        StateHasChanged();
+    }
+}

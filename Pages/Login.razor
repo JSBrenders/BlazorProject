@@ -1,0 +1,131 @@
+﻿@page "/login"
+
+@using Blazored.Toast
+@using Blazored.Toast.Services
+@using Blazored.Toast.Configuration
+
+@inject IHttpContextAccessor context
+@inject NavigationManager nav
+@inject IHttpClientFactory httpclient
+@inject JoueursController joueurController
+@inject IToastService toastService
+@inject RegistrationService registrationService
+
+
+
+<EditForm class="w-50 m-auto" Model="@subscribeModel" OnSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <h3 class="mb-5 text-center">Bienvenue sur English Battle !</h3>
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label" for="login">Email ou Pseudo</label>
+        <div class="col-sm-9">
+            <InputText class="form-control" @onclick="@(e => {BadCredentials = false; StateHasChanged();})" id="login" @bind-Value="subscribeModel.Login" />
+        </div>
+        <ValidationMessage For="@(() => subscribeModel.Login)" />
+    </div>
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label" for="password">Mot de passe</label>
+        <div class="col-sm-9">
+            <InputText class="form-control" @onclick="@(e => {BadCredentials = false; StateHasChanged();})" type="password" id="Password" @bind-Value="subscribeModel.Password" />
+        </div>
+        <ValidationMessage For="@(() => subscribeModel.Password)" />
+    </div>
+
+    <div class="m-auto text-center">
+
+        <button type="submit" class="btn btn bg-success">Se connecter</button>
+        @if (BadCredentials)
+        {
+            <div class="mt-2">
+                <p class="text-danger">Identifiants incorrects</p>
+            </div>
+        }
+
+    </div>
+</EditForm>
+
+<BlazoredToasts IconType="IconType.FontAwesome" SuccessIcon="fa fa-thumbs-up" SuccessClass="success-toast-override" />
+
+@code {
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (registrationService.Registered & firstRender)
+        {
+            toastService.ShowSuccess("Votre compte a bien été enregistré.");
+            subscribeModel.Login = registrationService.pseudo;
+            StateHasChanged();
+            registrationService.Registered = false;
+            registrationService.pseudo = "";
+        }
+    }
+
+    HttpClient Http = new HttpClient();
+    Boolean BadCredentials = false;
+    public static IdentificationToken identificationToken;
+
+    public class SubscribeModel
+    {
+        [Required(ErrorMessage = "Vous n'avez pas saisi votre Identifiant.")]
+        public string Login { get; set; }
+
+        [Required(ErrorMessage = "Vous n'avez pas saisi votre Mot de Passe.")]
+        [MinLength(6, ErrorMessage = "Votre mot de passe doit comporter au moins 6 caractères")]
+        public string Password { get; set; }
+    }
+
+    private SubscribeModel subscribeModel { get; set; } = new SubscribeModel();
+
+
+
+    public async void HandleValidSubmit()
+    {
+        try
+        {
+            var response = await (nav.BaseUri + "api/Login").PostJsonAsync(subscribeModel);
+            if (response.StatusCode.ToString() == "OK")
+            {
+                Joueur joueur = await joueurController.GetJoueurParEmail(subscribeModel.Login);
+                if(joueur == null)
+                {
+                    joueur = await joueurController.GetJoueurParPseudo(subscribeModel.Login);
+                }
+                string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                identificationToken = new IdentificationToken();
+                identificationToken.LoginToken = new Dictionary<string, string>();
+                identificationToken.LoginToken.Add(joueur.Username, token);
+             
+                nav.NavigateTo("Authentification/Login?paramUsername=" + encode(joueur.Username) + "&Token=" + encode(token) + "&paramPseudo=" + encode(joueur.Username), true);
+            }
+            else if (response.StatusCode.ToString() == "Accepted")
+            {
+                BadCredentials = true;
+                StateHasChanged();
+            }
+            else
+            {
+
+            }
+        }
+        catch
+        {
+            System.Diagnostics.Debug.Print("Bad credential");
+            BadCredentials = true;
+            StateHasChanged();
+        }
+
+
+
+    }
+
+    private string encode(string param)
+    {
+        return HttpUtility.UrlEncode(param);
+    }
+
+
+
+}

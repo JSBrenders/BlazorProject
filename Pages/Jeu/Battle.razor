@@ -1,0 +1,727 @@
+﻿@page "/Battle"
+@attribute [Authorize]
+@using System.Timers
+@inject PartiesController partieController
+@inject VerbesController verbesController
+@inject JoueursController joueurController
+@inject NavigationManager nav
+@inject QuestionsController questionController
+@inject IJSRuntime JSRuntime
+@inject CurrentPartieController currentPartieController
+@implements IDisposable
+
+@if (!Won)
+{
+    @if (!GameStarted)
+    {
+        @if (!PartieEnCours)
+        {
+            <h1 class="d-flex justify-content-center mt-5 font-weight-bold">Prepare for Battle !</h1>
+
+            <div class="d-flex my-5 justify-content-center align-items-center">
+                <button class="btn btn-secondary mt-5" @onclick="StartGame"><h3 class="my-auto text-black">Démarrer la partie</h3></button>
+            </div>
+
+            @*<div class="d-flex my-5 justify-content-center align-items-center">
+                <button class="btn btn-secondary mt-5" @onclick="(() => Won = true)"><h3 class="my-auto text-black">Test win</h3></button>
+            </div>*@
+
+
+        }
+        else
+        {
+            <h1 class="d-flex justify-content-center mt-5 font-weight-bold">Prepare for Battle !</h1>
+
+            <div class="d-flex my-5 justify-content-center align-items-center">
+                <button class="btn btn-secondary mt-5" @onclick="ContinueGame"><h3 class="my-auto text-black">Continuer la partie en cours (@difficulty)</h3></button>
+            </div>
+
+            <div class="d-flex my-5 justify-content-center align-items-center">
+                <button class="btn btn-secondary mt-5" @onclick="StartGame"><h3 class="my-auto text-black">Démarrer une nouvelle partie</h3></button>
+            </div>
+        }
+
+        @if (failed)
+        {
+            <div class="d-flex justify-content-center">
+                <p><strong>Game Over !</strong></p>
+            </div>
+            <div class="d-flex justify-content-center">
+                @if (GoodAnswer != "")
+                {
+                <p class="text-center" style="color:green"><strong>La bonne réponse était : </strong>@GoodAnswer</p>
+                }
+            </div>
+            <div class="d-flex justify-content-center">
+                @if (timeOut)
+                {
+                    <p><strong>TIME OUT</strong></p>
+                }
+            </div>
+            <div class="d-flex justify-content-center">
+                @if (@CurrentPartie.Score > 1)
+                {
+                    <p>Résultat : @CurrentPartie.Score  verbes</p>
+                }
+                else
+                {
+                    <p>Résultat : @CurrentPartie.Score  verbe</p>
+                }
+            </div>
+        }
+        
+        <div class="w-75 mx-auto mt-xl-5" id="slider-pips"></div>
+
+    }
+    else
+    {
+
+        <p>Votre meilleur score en <strong>@difficulty</strong> : @meilleurScore verbes</p>
+
+
+        <EditForm class="mt-5 justify-content-center" Model="@CurrentQuestion" OnValidSubmit="@(() => Check())">
+            <DataAnnotationsValidator />
+            <p>@(CurrentPartie.Score) / @ListeVerbes.Count()</p>
+            <h3 class="my-5 d-flex justify-content-center">Question @(1 + CurrentPartie.Score) : To @CurrentVerbe.baseVerbarle </h3>
+            <div class="d-flex justify-content-center">
+                @if (CurrentTime > 0)
+                {
+                    <div id="app"></div>
+                }
+            </div>
+            <div class="mt-5 mx-auto w-50 d-flex justify-content-around row">
+                <div class="col">
+                    <p class="form-control">@CurrentVerbe.baseVerbarle</p>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" id="VerbePreterit" autocomplete="off" placeholder="Prétérit" @bind-value="CurrentQuestion.ReponsePreterit" @bind-value:event="oninput"  autofocus />
+                    <ValidationMessage For="@(() => CurrentQuestion.ReponsePreterit)" />
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" id="VerbeParticipePasse" autocomplete="off" placeholder="Participe passé" @bind-value="CurrentQuestion.ReponseParticipe" @bind-value:event="oninput" />
+                    <ValidationMessage For="@(() => CurrentQuestion.ReponseParticipe)" />
+                </div>
+            </div>
+
+            <div class="mt-5 d-flex justify-content-center">
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </div>
+        </EditForm>
+    }
+}
+else
+{
+    <div class="d-flex justify-content-center align-items-center pb-5 mt-5">
+        <h1 class="font-weight-bolder mt-5">Congratulations, You Won the English Battle !!!</h1>
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    //déclaration des variables
+    Joueur joueur;
+    Verbe CurrentVerbe = new Verbe();
+    bool GameStarted;
+    List<Verbe> ListeVerbes = new List<Verbe>();
+    int i;
+    Partie CurrentPartie = null;
+    AuthenticationState authState;
+    ClaimsPrincipal user;
+    int meilleurScore;
+    int IdCurrentPartie;
+    bool Won;
+    bool failed;
+    int IdJoueur;
+    CurrentPartie currentPartie;
+    bool PartieEnCours = false;
+    Question CurrentQuestion;
+    static int SliderValue;
+    static int clock;
+    int CurrentTime = clock;
+    Timer timer;
+    bool timeOut;
+    static int CurrentDifficulty;
+    string GoodAnswer;
+    static string difficulty;
+
+    [JSInvokable]
+    public static void SetSliderValue(string value)
+    {
+        //evenement déclenché par le code javacript de _Host à chaque update de la difficulté
+        var temp = Decimal.Parse(value.Replace(".", ","));
+        SliderValue = Decimal.ToInt32(temp);
+        CurrentDifficulty = SliderValue;
+        SetDifficulty(SliderValue);
+    }
+
+
+    public static void SetDifficulty(int Difficulty)
+    {
+        switch (Difficulty)
+        {
+            case 0:
+                difficulty = "Très Facile";
+                clock = 0;
+                break;
+            case 1:
+                difficulty = "Facile";
+                clock = 45;
+                break;
+            case 2:
+                difficulty = "Normal";
+                clock = 30;
+                break;
+            case 3:
+                difficulty = "Difficile";
+                clock = 20;
+                break;
+            case 4:
+                difficulty = "Très Difficile";
+                clock = 10;
+                break;
+        }
+    }
+
+
+    //Initialisation de la page
+    protected async override Task OnInitializedAsync()
+    {
+
+        //On initialise CurrentDifficulty à la difficulté par défaut
+        CurrentDifficulty = 2;
+
+        //création d'une partie
+        CurrentPartie = new Partie();
+        //récupération de l'utilisateur connecté
+        authState = await authenticationStateTask;
+        user = authState.User;
+        //recherche joueur dans la base de données
+        try
+        {
+            joueur = await joueurController.GetJoueurParPseudo(user.Identity.Name);
+            IdJoueur = joueur.Id;
+        }
+        catch
+        {
+            //erreur de lecture de l'Id
+            nav.NavigateTo("/");
+        }
+        if (IdJoueur == 0)
+        {
+            //erreur de lecture de l'Id
+            nav.NavigateTo("/");
+        }
+        //on instancie le niveau du joueur s'il est à null (à 2 par défaut)
+        if(joueur.Niveau < 0 || joueur.Niveau > 4)
+        {
+            joueur.Niveau = 2;
+        }
+        //On cherche si l'utilisateur a déjà une partie en cours
+        currentPartie = await currentPartieController.GetPartieParId(IdJoueur);
+        if (currentPartie != null)
+        {
+            if (currentPartie.RangListe < 1)
+            {
+                //on supprime la partie en cours de l'utilisateur si elle existe
+                try
+                {
+                    await currentPartieController.DeletePartie(currentPartie.Id);
+                }
+                catch
+                {
+
+                }
+                currentPartie = null;
+            }
+            else
+            {
+                SetDifficulty(currentPartie.Difficulty);
+                //affectation des variables booléennes d'issue de la partie
+                failed = false;
+                Won = false;
+                timeOut = false;
+                //la partie n'a pas encore démarré
+                GameStarted = false;
+                //Ui mise à jour pour proposer de continuer la partie en cours
+                PartieEnCours = true;
+                //récupération de la liste des verbes de la partie en cours sous forme de string (Idverbe,Idverbe,etc ..)
+                ListeVerbes = await verbesController.GetVerbesListe();
+                //rafraichissement de la page
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            //affectation des variables booléennes d'issue de la partie
+            failed = false;
+            Won = false;
+            timeOut = false;
+
+            //initialisation de la liste des verbes
+            ListeVerbes = await verbesController.GetVerbesListe();
+
+            //la partie n'a pas encore démarré
+            GameStarted = false;
+
+        }
+    }
+
+    protected override async void OnAfterRender(bool Firstrender)
+    {
+        if (Firstrender)
+        {
+            if(joueur == null)
+            {
+                //récupération de l'utilisateur connecté
+                authState = await authenticationStateTask;
+                user = authState.User;
+                //recherche joueur dans la base de données
+                try
+                {
+                    int j = 0;
+                    joueur = await (nav.BaseUri + "api/Joueurs/pseudo/" + user.Identity.Name).GetJsonAsync<Joueur>();
+                    while (joueur == null || j < 49)
+                    {
+                        joueur = await (nav.BaseUri + "api/Joueurs/pseudo/" + user.Identity.Name).GetJsonAsync<Joueur>();
+                        j++;
+                    }
+                    IdJoueur = joueur.Id;
+                    await JSRuntime.InvokeVoidAsync("ActivateSlider", joueur.Niveau);
+                    await JSRuntime.InvokeVoidAsync("StopTime");
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.Print(e.ToString());
+                    //erreur de lecture de l'Id
+                    nav.NavigateTo("/");
+                }
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("ActivateSlider", joueur.Niveau);
+                await JSRuntime.InvokeVoidAsync("StopTime");
+            }
+        }
+    }
+
+    //Code de démarrage d'une nouvelle partie
+    public async void StartGame()
+    {
+        //mise à jour difficulté joueur
+        joueur.Niveau = CurrentDifficulty;
+        await (nav.BaseUri + "api/Joueurs/" + IdJoueur).PutJsonAsync(joueur);
+        //initialisation du numéro du verbe (mettre à 160 pour simuler la dernière question, 0 pour commencer du début)
+        i = 0;
+
+        //recherche du meilleur score de l'utilisateur actuel
+        var highScore = await (nav.BaseUri + "api/Parties/highscore/" + IdJoueur + "/" + CurrentDifficulty).GetJsonAsync<Partie>();
+
+        if (highScore != null)
+        {
+            meilleurScore = highScore.Score;
+
+        }
+        else
+        {
+            meilleurScore = 0;
+        }
+        if (currentPartie != null)
+        {
+            try
+            {
+                //on supprime la partie en cours de l'utilisateur si elle existe
+                await currentPartieController.DeletePartie(currentPartie.Id);
+            }
+            catch { }
+        }
+        //réinitialisation des variables d'issues de la partie
+        Won = false;
+        failed = false;
+        timeOut = false;
+        //initialisation de la nouvelle partie
+        CurrentPartie = new Partie();
+        CurrentPartie.IdJoueur = IdJoueur;
+        CurrentPartie.Score = 0;
+        CurrentPartie.Difficulty = SliderValue;
+        //initialisation  de la premiere question
+        CurrentQuestion = new Question();
+        //on mélange la liste des verbes
+        ListShuffle.Shuffle<Verbe>(ListeVerbes);
+        //On ajoute la nouvelle partie dans la base de données
+        try
+        {
+            CurrentPartie = await (nav.BaseUri + "api/Parties/").PostJsonAsync(CurrentPartie).ReceiveJson<Partie>();
+            //récupération de l'id de la partie ajouté en vue de la modifier par la suite
+            IdCurrentPartie = CurrentPartie.Id;
+        }
+        catch
+        {
+            //Traitement erreur
+            nav.NavigateTo("/error");
+        }
+
+        GameStarted = true;
+        //On initialise le premier verbe
+        CurrentVerbe = ListeVerbes[i];
+        GoodAnswer = ListeVerbes[i].baseVerbarle + ", " + ListeVerbes[i].preterit + ", " + ListeVerbes[i].participePasse;
+        CurrentQuestion.DateEnvoie = DateTime.Now;
+
+        //on déclare qu'il y a une partie en cours et on l'ajoute en BDD
+        currentPartie = new CurrentPartie();
+        currentPartie.IdPartie = CurrentPartie.Id;
+        currentPartie.EnCours = true;
+        currentPartie.IdJoueur = IdJoueur;
+        currentPartie.RangListe = 0;
+        currentPartie.Difficulty = SliderValue;
+        currentPartie.ListeVerbes = ",";
+        try
+        {
+            currentPartie = await (nav.BaseUri + "api/CurrentPartie").PostJsonAsync(currentPartie).ReceiveJson<CurrentPartie>();
+        }
+        catch { }
+
+        //timer
+        LaunchTimer();
+    }
+
+
+
+    //fonction refresh
+    public void refresh(Object source, ElapsedEventArgs e)
+    {
+        //StateHasChanged();
+        System.Diagnostics.Debug.Print(CurrentTime.ToString());
+    }
+
+    //code de vérification à chaque post de réponse
+    public async void Check(bool timeout = false)
+    {
+
+        //var verbe = await verbesController.GetVerbeParId(CurrentVerbe.Id);
+        var verbe = await (nav.BaseUri + "api/Verbes/" + CurrentVerbe.Id).GetJsonAsync<Verbe>();
+        GoodAnswer = verbe.baseVerbarle + ", " + verbe.preterit + ", " + verbe.participePasse;
+
+        //préparation des réponses vides pour l'intégrité de la base de données (une question ne peut pas avoir de réponses nulles)
+        if(CurrentQuestion.ReponseParticipe == null || CurrentQuestion.ReponseParticipe == "")
+        {
+            CurrentQuestion.ReponseParticipe = "No Answer";
+        }
+
+        if(CurrentQuestion.ReponsePreterit == null || CurrentQuestion.ReponsePreterit == "")
+        {
+            CurrentQuestion.ReponsePreterit = "No Answer";
+        }
+
+        if (verbe.preterit.ToLower() == CurrentQuestion.ReponsePreterit.ToLower() & verbe.participePasse.ToLower() == CurrentQuestion.ReponseParticipe.ToLower())
+        {
+            await BonneReponse();
+        }
+
+        else
+        {
+            if(timeout)
+            {
+                await MauvaiseReponse(timeout);
+            }
+            else
+            {
+                await MauvaiseReponse();
+            }
+        }
+    }
+
+    //code de la reprise de partie
+    public async void ContinueGame()
+    {
+        await (nav.BaseUri + "api/Joueurs/" + IdJoueur).PutJsonAsync(joueur);
+        //récupération du meilleur score
+        var highScore = await (nav.BaseUri + "api/Parties/highscore/" + IdJoueur + "/" + CurrentDifficulty).GetJsonAsync<Partie>();
+        if (highScore != null)
+        {
+            meilleurScore = highScore.Score;
+        }
+        else
+        {
+            meilleurScore = 0;
+        }
+
+        //récupération de la partie
+        try
+        {
+            CurrentPartie = await partieController.GetPartieParID(currentPartie.IdPartie);
+            if (CurrentPartie == null)
+            {
+                StartGame();
+                return;
+            }
+        }
+        catch
+        {
+            StartGame();
+            return;
+        }
+        joueur.Niveau = CurrentPartie.Difficulty;
+        SetDifficulty(CurrentPartie.Difficulty);
+        string listeVerbePartieEnCours = currentPartie.ListeVerbes;
+        if (currentPartie != null)
+        {
+            //on supprime la partie en cours (currentPartie)
+            await currentPartieController.DeletePartie(currentPartie.Id);
+        }
+        //initialisation de la partie en cours (currentpartie)
+        currentPartie = new CurrentPartie();
+        currentPartie.EnCours = true;
+        currentPartie.IdJoueur = IdJoueur;
+        currentPartie.RangListe = CurrentPartie.Score;
+        currentPartie.ListeVerbes = listeVerbePartieEnCours;
+        currentPartie.Difficulty = CurrentPartie.Difficulty;
+
+
+        IdCurrentPartie = CurrentPartie.Id;
+        i = CurrentPartie.Score;
+
+        timeOut = false;
+
+        //on mélange la liste des verbes
+        ListShuffle.Shuffle<Verbe>(ListeVerbes);
+        while (currentPartie.ListeVerbes.Contains(ListeVerbes[i].Id.ToString()))
+        {
+            //on incrémente i du nombre de verbes déjà passés
+            i++;
+        }
+        CurrentVerbe = ListeVerbes[i];
+        GoodAnswer = ListeVerbes[i].baseVerbarle + ", " + ListeVerbes[i].preterit + ", " + ListeVerbes[i].participePasse;
+
+        //initialisation de la question de reprise de partie
+        CurrentQuestion = new Question();
+
+        CurrentQuestion.IdPartie = CurrentPartie.Id;
+        CurrentQuestion.IdVerbe = CurrentVerbe.Id;
+        CurrentQuestion.DateEnvoie = DateTime.Now;
+        GameStarted = true;
+        //currentPartie.RangListe = CurrentPartie.Score;
+        currentPartie.IdPartie = CurrentPartie.Id;
+        currentPartie.Difficulty = CurrentPartie.Difficulty;
+        //ajout de la partie en cours (currentPartie) en bdd
+        try
+        {
+            var result = await currentPartieController.AddCurrentPartie(currentPartie);
+        }
+        catch
+        {
+
+        }
+
+        //timer Continue
+        CurrentTime = clock;
+        LaunchTimer();
+    }
+
+    //timer
+    public async void LaunchTimer()
+    {
+
+        if (clock > 0)
+        {
+            if(timer != null)
+            {
+                timer.Stop();
+            }
+            CurrentTime = clock;
+            await InvokeAsync(StateHasChanged);
+            bool exists = await JSRuntime.InvokeAsync<bool>("TimerExists");
+            while(!exists)
+            {
+                exists = await JSRuntime.InvokeAsync<bool>("TimerExists");
+            }
+            await JSRuntime.InvokeVoidAsync("startTimer", clock);
+            timer = new Timer(1000);
+            timer.AutoReset = true;
+            timer.Elapsed += Decrease;
+            //timer.Elapsed += refresh;
+            timer.Start();
+            timer.Enabled = true;
+        }
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("focusElement", "VerbePreterit");
+        }
+        catch
+        {
+
+        }
+    }
+
+    //décompte horloge
+    public async void Decrease(Object source, ElapsedEventArgs e)
+    {
+        if (CurrentTime > 0)
+        {
+            CurrentTime--;
+            System.Diagnostics.Debug.Print("CurrentTime : " + CurrentTime.ToString());
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            //fin du timer
+            timer.Stop();
+            // On vérifie si le joueur a eu le temps d'écrire les réponses mais pas de valider
+            //S'il perd, on affiche timeout par le passage  du paramètre optinnel true
+            //S'il gagne, on passe à la question suivante, comme si le joueur avait appuyé sur le bouton envoyer
+            Check(true);
+
+        }
+    }
+
+    //Fonction bonne réponse à une question
+    public async Task BonneReponse()
+    {
+        //bonne réponse et mise à jour partie Actuelle
+        CurrentPartie.Score++;
+        await (nav.BaseUri + "api/Parties/" + IdCurrentPartie).PutJsonAsync(CurrentPartie);
+        //envoi de la question au controller
+        CurrentQuestion.DateReponse = DateTime.Now;
+        CurrentQuestion.IdPartie = IdCurrentPartie;
+        CurrentQuestion.IdVerbe = CurrentVerbe.Id;
+        CurrentQuestion = await (nav.BaseUri + "api/Questions").PostJsonAsync(CurrentQuestion).ReceiveJson<Question>();
+        i++;
+        if (i <= 160)
+        {
+            //update partie en cours (pour revenir à ce point de la partie en cas d'abandon)
+            currentPartie.RangListe++;
+            currentPartie.ListeVerbes += CurrentVerbe.Id.ToString() + ",";
+            //mise à jour de la partie en cours (currentPartie) avec le verbe prédécent
+            if (currentPartie != null)
+            {
+                try
+                {
+                    await (nav.BaseUri + "api/CurrentPartie/" + currentPartie.Id).PutJsonAsync(currentPartie);
+                }
+                catch
+                {
+
+                }
+            }
+            //update du verbe
+            //cas pas de partie encours
+            CurrentVerbe = ListeVerbes[i];
+            //cas partie en cours
+            if (currentPartie != null)
+            {
+                while (currentPartie.ListeVerbes.Contains(ListeVerbes[i].Id.ToString()))
+                {
+                    //on incrémente i du nombre de verbes déjà passés
+                    i++;
+                }
+                CurrentVerbe = ListeVerbes[i];
+            }
+            //Update question et raz des champs
+            CurrentQuestion = new Question();
+            CurrentQuestion.ReponseParticipe = "";
+            CurrentQuestion.ReponsePreterit = "";
+            CurrentQuestion.DateEnvoie = DateTime.Now;
+            //lancement du timer
+            LaunchTimer();
+        }
+        else
+        {
+            //C'est gagné
+            currentPartie.EnCours = false;
+            //on supprime la partie en cours
+            await (nav.BaseUri + "api/CurrentPartie/" + currentPartie.Id).DeleteAsync();
+            Won = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    //Fonction bonne réponse à une question
+    public async Task MauvaiseReponse(bool timeout = false)
+    {
+        //mauvaise réponse on supprime la partie en cours
+        failed = true;
+        CurrentQuestion.DateEnvoie = DateTime.Now;
+        CurrentQuestion.IdPartie = IdCurrentPartie;
+        CurrentQuestion.IdVerbe = CurrentVerbe.Id;
+        await (nav.BaseUri + "api/Questions/").PostJsonAsync(CurrentQuestion);
+        GameStarted = false;
+        if (currentPartie != null)
+        {
+            if( currentPartie.Id != 0)
+            {
+                await (nav.BaseUri + "api/CurrentPartie/" + currentPartie.Id).DeleteAsync();
+            }
+        }
+        //arret du timer
+        if(timer != null)
+        {
+            timer.Stop();
+        }
+        if(timeout)
+        {
+            timeOut = true;
+        }
+        PartieEnCours = false;
+        await InvokeAsync(StateHasChanged);
+        //mise à jour du slider si ce n'est pas fait
+        try
+        {
+            bool SliderExists = await JSRuntime.InvokeAsync<bool>("SliderExists");
+            if (!SliderExists)
+            {
+                await JSRuntime.InvokeVoidAsync("ActivateSlider", joueur.Niveau);
+            }
+            await JSRuntime.InvokeVoidAsync("UpdateSlider", CurrentDifficulty);
+        }
+        catch
+        {
+
+        }
+    }
+
+
+    //code de destruction du composant
+    public async void Dispose()
+    {
+
+        //si au moins une question est passée on met à jour la partie et la partie en cours en bdd(current partie)
+        if (CurrentPartie.Score > 0)
+        {
+            try
+            {
+                await (nav.BaseUri + "api/Parties/" + IdCurrentPartie).PutJsonAsync(CurrentPartie);
+                currentPartie.EnCours = true;
+                currentPartie.RangListe = CurrentPartie.Score;
+                currentPartie.IdPartie = CurrentPartie.Id;
+                currentPartie.Difficulty = CurrentPartie.Difficulty;
+                await (nav.BaseUri + "api/CurrentPartie/" + currentPartie.Id).PostJsonAsync(currentPartie);
+            }
+            catch
+            {
+
+            }
+        }
+        else
+        {
+            try
+            {
+                if (currentPartie != null)
+                {
+                    if (currentPartie.RangListe < 1)
+                    {
+                        currentPartie = await currentPartieController.GetPartieParId(IdJoueur);
+                        await currentPartieController.DeletePartie(currentPartie.Id);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.Print(ex.ToString());
+            }
+        }
+    }
+}
+
+

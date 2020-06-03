@@ -1,0 +1,243 @@
+﻿@page "/register"
+@using System.Net.Http
+
+
+@inject VillesController villes
+@inject NavigationManager Nav
+@inject JoueursController  joueurController
+@inject IToastService toastService
+@inject RegistrationService registrationService
+@inject IJSRuntime jsRuntime
+
+
+
+    <EditForm class="col-6" Model="@joueur" OnValidSubmit="@HandleValidSubmit" autocomplete="off">
+        <DataAnnotationsValidator />
+
+        <h3 class="mb-4">English Battle Inscription</h3>
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="Pseudo">Pseudo </label>
+            <div class="col-sm-9">
+                <InputText autocomplete="false" @onblur="@(async e => { await checkDuplicatePseudo(joueur.Username); StateHasChanged(); })" 
+                           class="form-control" id="Pseudo" @bind-Value="joueur.Username" />
+                <ValidationMessage For="@(() => joueur.Username)" />
+                @if (DuplicatedPseudo)
+                {
+                    <div class="mt-2">
+                        <p class="text-danger">Ce Pseudo existe déjà.</p>
+                    </div>
+                }
+                else if(joueur.Username != "" & joueur.Username != null)
+                {
+                    <div class="mt-2">
+                        <p class="text-success">Ce pseudo est disponible.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="nom">Nom </label>
+            <div class="col-sm-9">
+                <InputText class="form-control" id="nom" @bind-Value="joueur.Nom" />
+                <ValidationMessage For="@(() => joueur.Nom)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="prenom">Prenom </label>
+            <div class="col-sm-9">
+                <InputText class="form-control" id="prenom" @bind-Value="joueur.Prenom" />
+                <ValidationMessage For="@(() => joueur.Prenom)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="email">Email </label>
+            <div class="col-sm-9">
+                <InputText class="form-control" @onblur="@(async e => { await checkDuplicateEmail(joueur.Email); StateHasChanged(); })" id="email" @bind-Value="joueur.Email" autocomplete="off" />
+                <ValidationMessage For="@(() => joueur.Email)" />
+                @if (DuplicatedEmail)
+                {
+                    <div class="mt-2">
+                        <p class="text-danger">Cette adresse Email existe déjà.</p>
+                    </div>
+                }
+                else if(joueur.Email != "" & joueur.Email != null)
+                {
+                    <div class="mt-2">
+                        <p class="text-success">Cette adresse Email est disponible.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="password">Mot de Passe </label>
+            <div class="col-sm-9">
+                <InputText type="password" class="form-control validate autocomplete-off" id="password" @bind-Value="joueur.MotDePasse" />
+                <ValidationMessage For="@(() => joueur.MotDePasse)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="Confirmationpassword">Confirmation </label>
+            <div class="col-sm-9">
+                <InputText @onclick="(e => { WrongConfirmation = false; StateHasChanged(); })" type="password" class="form-control validate" id="Confirmationpassword" @bind-Value="ConfirmationPassword" />
+            </div>
+        </div>
+
+        @if (WrongConfirmation)
+        {
+            <p class="text-danger mt-2 mb-2">Erreur dans la confirmation du Mot de Passe !</p>
+        }
+
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label" for="ville">Ville </label>
+            <div class="col-sm-9">
+                <BlazoredTypeahead Debounce="300" ConvertMethod="ConvertVille" class="form-control"  id="ville" SearchMethod="SearchVille"
+                                   @bind-Value="@joueur.IdVille">
+                    <SelectedTemplate  Context="villeId">
+                        @if (villeId != 0)
+                        {
+                            Ville selectedVille = LoadSelectedVille(villeId);
+
+                            <text>@selectedVille.nom @selectedVille.codePostal </text>
+                        }
+                    </SelectedTemplate>
+                    <ResultTemplate Context="ville">
+                        <text>@ville.nom (@ville.codePostal)</text>
+                    </ResultTemplate>
+                </BlazoredTypeahead>
+                <ValidationMessage For="@(() => joueur.IdVille)" />
+            </div>
+        </div>
+
+        <button class="mt-3 mb-10 btn btn-success" type="submit">Inscription</button>
+
+        @if(DBError)
+        {
+            <p class="alert-danger">Une erreur est survenue lors de la création de votre compte</p>
+        }
+
+    </EditForm>
+
+@code {
+
+
+    IEnumerable<Ville> liste;
+    HttpClient Http = new HttpClient();
+    string ConfirmationPassword;
+    private Ville ville = new Ville();
+    private Joueur joueur;
+    bool WrongConfirmation = false;
+    bool DuplicatedPseudo;
+    bool DuplicatedEmail;
+    bool DBError = false;
+
+    protected override void OnInitialized()
+    {
+        joueur = new Joueur();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool FirstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("GiveFocusKeyboard");
+    }
+
+
+    private async void HandleValidSubmit()
+    {
+        bool CheckDuplicateMail = await checkDuplicateEmail(joueur.Email);
+        bool CheckDuplicatePseudo = await checkDuplicatePseudo(joueur.Username);
+        if (ConfirmationPassword == joueur.MotDePasse & CheckDuplicateMail & CheckDuplicatePseudo)
+        {
+
+            joueur.MotDePasse = HashGenerator.SHA256(joueur.MotDePasse);
+            WrongConfirmation = false;
+            try
+            {
+                var result = await (Nav.BaseUri + "api/Joueurs").PostJsonAsync(joueur);
+                registrationService.Registered = true;
+                registrationService.pseudo = joueur.Username;
+                Nav.NavigateTo("/login");
+            }
+            catch
+            {
+                DBError = true;
+                StateHasChanged();
+            }
+
+        }
+        else
+        {
+            WrongConfirmation = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<IEnumerable<Ville>> SearchVille(string searchText)
+    {
+        try
+        {
+            liste = await villes.GetVilleParNom(searchText);
+            liste = liste.OrderBy(x => x.nom);
+            return liste;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public int ConvertVille(Ville ville)
+    {
+        return ville.Id;
+    }
+
+    public Ville LoadSelectedVille(int Id)
+    {
+
+        return villes.GetVilleParId(Id);
+    }
+
+    public async Task<bool> checkDuplicatePseudo(string pseudo)
+    {
+        if (pseudo != null)
+        {
+            var joueur = await joueurController.GetJoueurParPseudo(pseudo);
+            if (joueur != null)
+            {
+                DuplicatedPseudo = true;
+                return false;
+            }
+            else
+            {
+                DuplicatedPseudo = false;
+                return true;
+            }
+        }
+        else return true;
+    }
+
+    public async Task<bool> checkDuplicateEmail(string Email)
+    {
+        if (Email != null)
+        {
+            var joueur = await joueurController.GetJoueurParEmail(Email);
+            if (joueur == null)
+            {
+                DuplicatedEmail = false;
+                return true;
+            }
+            else
+            {
+                DuplicatedEmail = true;
+                return false;
+            }
+        }
+        else return true;
+    }
+
+}
