@@ -9,7 +9,11 @@ namespace ProjetTp1.Custom
 
         protected override void OnInitialized()
         {
-            NavigationManager.NavigateTo("login");
+            try
+            {
+                NavigationManager.NavigateTo("login");
+            }
+            catch { }
         }
     }
 }

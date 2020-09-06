@@ -39,7 +39,7 @@ appelle le composant MainLayout.razor (/Shared/MainLayout.razor) qui rend dynami
 - La base de données est générée via les classes de modèles (/Models) et EntityFramework (Startup.cs lignes 76 - Database.Migrate()). EF utilise le dernier script de 
 migration généré (ProjetTp1ContextModelSnapshot.cs) pour construire la BDD (/Migrations).
 
-- J'utilise beaucoup d'interopérabilité avec JavaScript : fonction JSRuntime.InvokeVoidAsync() (exemple /jeu/Battle.razor ligne 291) via l'injection de dépendance JSRuntime 
+- J'utilise l'interopérabilité avec JavaScript : fonction JSRuntime.InvokeVoidAsync() (exemple /jeu/Battle.razor ligne 291) via l'injection de dépendance JSRuntime 
 (exemple /jeu/Battle.razor ligne 9)
 
 - Lancer le site devrait suffire à créer la base de données SQLServer si vous possédez un serveur local SQLServer (localdb)MSSQLLocalDB.

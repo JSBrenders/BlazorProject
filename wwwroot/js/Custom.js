@@ -237,7 +237,6 @@ function GiveFocusKeyboard() {
     if (element1 != null) {
         element1.addEventListener('focusin', function (event) {
             if (element.textContent.trimLeft().trimRight() == "") {
-                console.log("rien");
             $(".blazored-typeahead__input-mask").click();
             }
             //console.log(element.innerHTML);
