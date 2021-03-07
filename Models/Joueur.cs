@@ -5,7 +5,6 @@ namespace ProjetTp1.Model
 {
     public class Joueur
     {
-
         public int Id { get; set; }
         [Required(ErrorMessage = "Vous n'avez pas saisi votre Nom.")]
         public string Nom { get; set; }

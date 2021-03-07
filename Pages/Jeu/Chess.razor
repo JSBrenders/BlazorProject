@@ -1,0 +1,15 @@
+﻿@page "/Chess"
+
+@inject IJSRuntime jsruntime
+
+<div class="justify-content-center" id="board"></div>
+
+
+@code {        
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsruntime.InvokeVoidAsync("LoadChessBoard");
+    }
+
+}
