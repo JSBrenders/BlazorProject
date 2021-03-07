@@ -57,10 +57,9 @@
 .piece {
     font-size: 60px;
 }
-
     .piece.ui-draggable-dragging {
-        border: none;
-        background:none;
+        /*border: none;
+        background:none;*/
     }
 
 .letter {
