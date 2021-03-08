@@ -78,7 +78,7 @@ function LoadChessBoard() {
 
 
                     chessGame.currentState[posDepart[0]][posDepart[1]] = 0;
-                    chessGame.currentState[posArrivee[0]][posArrivee[0]] = dataDepart.p;
+                    chessGame.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
 
                     chessGame.listePositions.push(chessGame.currentState);
                     //chessGame.VisualizeState(chessGame.currentState, chessGame.currentTurn, chessGame.toWhite);
@@ -164,6 +164,7 @@ function LoadChessBoard() {
             var data = $(this).data('position');
             var availablePositions = chessGame.checkPossibleTiles(data);
             //afficher les cases possibles
+
             console.log("Positions disponibles : " + availablePositions);
 
             //réinitialiser les cases
@@ -175,16 +176,13 @@ function LoadChessBoard() {
                 var x = availablePositions[i][0];
                 var y = availablePositions[i][1];
 
-
                 var tile = $('#tile' + (x * 8 + y));
                 var parent = $('#tile' + (x * 8 + y)).parent();
 
-                console.log(availablePositions[i]);
                 var tileJS = document.getElementById('tile' + (x * 8 + y));
 
                 var targetPiece = chessGame.currentState[x][y]
 
-                console.log("same couleur : " + chessGame.isSameColor(data.p, targetPiece));
 
                 if (data.p != 0 && (targetPiece == 0 || !chessGame.isSameColor(data.p, targetPiece))) {
                     if (targetPiece == 0) {
@@ -329,14 +327,11 @@ class ChessGame {
 
                 //horizontal et vertical
                 //vertical - on procède case par case depuis la position de la piece
-                var direction = [1, -1];
+                var directionVertical = [1, -1];
                 for (var t = 0; t < 2; t++) {
-                    console.log(direction[t]);
-                    for (var x = direction[t]; x + i < 8 && x + i >= 0 ; x += direction[t]) {
-                        //console.log("i : " + x + " j : ", + y);
-                        console.log(x + i);
+                    for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
                         if (this.currentState[x + i][j] == 0) {
-                            console.log("case traitée : " + x + i + "," + (j));
+                            ;
                             freeTiles.push([x + i, j]);
                         }
                         else {
@@ -349,76 +344,193 @@ class ChessGame {
                         }
                     }
                 }
-                //if (i + x >= 0 && i + x < 8) {
-                //    if (this.currentState[i + x][j + y] == 0) {
-                //        console.log("case traitée : " + (i + x) + "," + (j + y));
-                //        freeTiles.push([i + x, j]);
-                //    }
-                //    else {
-                //        var dataD = { i: i + x, j: j, p: this.currentState[i + x][j + y] }
-                //        if (this.canTake(data, dataD)) {
-                //            var pos = [i + x, j]
-                //            freeTiles.push(pos);
-                //        }
-                //    }
-                //}
+                //horizontal
+                var directionHorizontal = [1, -1];
+                for (var t = 0; t < 2; t++) {
+                    for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
+                        if (this.currentState[i][j + y] == 0) {
+                            freeTiles.push([i, j + y]);
+                        }
+                        else {
+                            var dataD = { i: i, j: j + y, p: this.currentState[i][j + y] }
+                            if (this.canTake(data, dataD)) {
+                                var pos = [i, j + y]
+                                freeTiles.push(pos);
+                            }
+                            break;
+                        }
+                    }
+                }
 
+                //diagonales 
+                //descendante
+                var directionDesc = [1, -1];
+                for (var t1 = 0; t1 < 2; t1++) {
+                    for (var t2 = 0; t2 < 2; t2++) {
+                        for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
 
-                //diagonales
+                            console.log(x + i + " / " + y + j);
 
+                            if (this.currentState[i + x][j + y] == 0) {
+                                freeTiles.push([x + i, j + y]);
+                            }
+                            else {
+                                var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                                if (this.canTake(data, dataD)) {
+                                    var pos = [x + i, j + y]
+                                    freeTiles.push(pos);
+                                }
+                                break;
+                            }
+                        }
 
+                    }
+                }
                 return freeTiles;
                 break;
             //tour blanche et tour noir
             case 3:
             case 9:
+                //horizontal et vertical
+                //vertical - on procède case par case depuis la position de la piece
+                var directionVertical = [1, -1];
+                for (var t = 0; t < 2; t++) {
+                    for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
+                        if (this.currentState[x + i][j] == 0) {
+                            ;
+                            freeTiles.push([x + i, j]);
+                        }
+                        else {
+                            var dataD = { i: x + i, j: j, p: this.currentState[x + i][j] }
+                            if (this.canTake(data, dataD)) {
+                                var pos = [x + i, j]
+                                freeTiles.push(pos);
+                            }
+                            break;
+                        }
+                    }
+                }
+                //horizontal
+                var directionHorizontal = [1, -1];
+                for (var t = 0; t < 2; t++) {
+                    for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
+                        if (this.currentState[i][j + y] == 0) {
+                            freeTiles.push([i, j + y]);
+                        }
+                        else {
+                            var dataD = { i: i, j: j + y, p: this.currentState[i][j + y] }
+                            if (this.canTake(data, dataD)) {
+                                var pos = [i, j + y]
+                                freeTiles.push(pos);
+                            }
+                            break;
+                        }
+                    }
+                }
                 return freeTiles;
                 break;
             //fou blanc et fou noir
             case 4:
             case 10:
+                //diagonales 
+                //descendante
+                var directionDesc = [1, -1];
+                for (var t1 = 0; t1 < 2; t1++) {
+                    for (var t2 = 0; t2 < 2; t2++) {
+                        for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
+
+                            if (this.currentState[i + x][j + y] == 0) {
+                                freeTiles.push([x + i, j + y]);
+                            }
+                            else {
+                                var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                                if (this.canTake(data, dataD)) {
+                                    var pos = [x + i, j + y]
+                                    freeTiles.push(pos);
+                                }
+                                break;
+                            }
+                        }
+
+                    }
+                }
                 return freeTiles;
                 break;
             //cavalier blanc et cavalier noir
             case 5:
             case 11:
+
+                //diagonales en L
+                var directionI = [2, 1, -1, -2, -2, -1, 1, 2];
+                var directionJ = [1, 2, 2, 1, -1, -2, -2, -1];
+
+                for (var t = 0; t < directionI.length; t++) {
+
+                    var x = directionI[t];
+                    var y = directionJ[t];
+
+                    if (x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0) {
+                        if (this.currentState[i + x][j + y] == 0) {
+                            freeTiles.push([x + i, j + y]);
+                        }
+                        else {
+                            var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                            if (this.canTake(data, dataD)) {
+                                var pos = [x + i, j + y]
+                                freeTiles.push(pos);
+                            }
+                        }
+                    }
+                }
                 return freeTiles;
                 break;
             //pion blanc et pion noir
             case 6:
             case 12:
-                freeTiles.push([4, 4], [4, 5])
+
+                var direction = 1;
+
+                if (this.isWhite(data.p)) {
+                    direction = -1;
+                }
+
+                //si les pions sont sur leur ligne de départ alors +2 sinon + 1
+                if ((this.isWhite(data.p) && data.i == 6) || (this.isBlack(data.p) && data.i == 1)) {
+                    for (var t = 1; t < 3; t++) {
+                        var x = direction*t;
+                        if (x + i < 8 && x + i >= 0) {
+                            if (this.currentState[i + x][j] == 0) {
+                                freeTiles.push([x + i, j]);
+                            }
+                        }
+                    }
+                } else {
+                    var x = direction;
+                    if (x + i < 8 && x + i >= 0) {
+                        if (this.currentState[i + x][j] == 0) {
+                            freeTiles.push([x + i, j]);
+                        }
+                    }
+                }
+
+                //On check les diagonales en avant pour les potentielles cibles
+                var directionDiag = [1, -1];
+                for (var t = 0; t < directionDiag.length; t++) {
+                    if (i + direction < 8 && i + direction >= 0 && j + directionDiag[t] < 8 && j + directionDiag[t] >= 0) {
+
+                        console.log("test");
+
+                        if (this.currentState[direction + i][j + directionDiag[t]] != 0) {
+                            var dataD = { i: direction + i, j: j + directionDiag[t], p: this.currentState[i + direction][j + directionDiag[t]] }
+                            if (this.canTake(data, dataD)) {
+                                var pos = [i + direction, j + directionDiag[t]]
+                                freeTiles.push(pos);
+                            }
+                        }
+                    }
+                }
                 return freeTiles;
                 break;
-            ////roi noir
-            //case 7:
-            //    //on utilise le code du roi blanc
-            //    var data1 = data;
-            //    data1.p = 1;
-            //    return checkPossibleTiles(data1)
-            //    //return freeTiles;
-            //    break;
-            ////reine noire
-            //case 8:
-            //    return freeTiles;
-            //    break;
-            ////tour noire
-            //case 9:
-            //    return freeTiles;
-            //    break;
-            ////fou noir
-            //case 10:
-            //    return freeTiles;
-            //    break;
-            ////cavalier noir
-            //case 11:
-            //    return freeTiles;
-            //    break;
-            ////pion noir
-            //case 12:
-            //    freeTiles.push([6, 4])
-            //    return freeTiles;
-            //    break;
             default:
                 break;
         }
@@ -435,14 +547,8 @@ class ChessGame {
         var posD = [dataD.i, dataD.j]
         var posA = [dataA.i, dataA.j]
 
-        //si les pieces sont de couleur opposé
-        //if (dataA.p != 0 && this.isWhite(dataD.p) != this.isWhite(dataA.p)) {
-        //    //la piece visée est bien dans les cases possibles
-        //    //if (this.checkPossibleTiles(dataD).includes((dataD.i, dataD.j))) {
-        //        return true;
-        //    //}
-        //}
         return !this.isSameColor(dataD.p, dataA.p);
+
     }
 
     //renvoi la couleur de la piece

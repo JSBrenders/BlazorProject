@@ -58,6 +58,7 @@
     font-size: 60px;
 }
     .piece.ui-draggable-dragging {
+        z-index:5;
         /*border: none;
         background:none;*/
     }
