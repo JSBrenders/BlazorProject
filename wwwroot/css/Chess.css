@@ -66,3 +66,30 @@
     font-weight: bold;
     text-align:center;
 }
+
+.dot {
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color:green;
+    margin:auto;
+}
+
+.targetOuter {
+    background-color: darkseagreen;
+    height: 100px;
+    width: 100px;
+    z-index:1
+}
+
+.targetInner {
+    height: 100px;
+    width: 100px;
+    background-color:aliceblue;
+    display: inline-block;
+    border-radius: 60%;
+    z-index:2;
+    display:flex;
+    justify-content:center;
+}
