@@ -64,70 +64,11 @@ function LoadChessBoard() {
             //revert: true
             drop: function (event, ui) {
 
-                resetIndications();
+                var dataDepart = $("#" + ui.draggable[0].id).data('position');
+                var dataArrivee = $("#" + event.target.firstChild.id).data('position');
+                //fonction de déclenchement du move
+                PlayMove(dataDepart, dataArrivee, chessGame);
 
-                var dataDepart = $("#" + ui.draggable[0].id).data('position')
-                var dataArrivee = $("#" + event.target.firstChild.id).data('position')
-                var posDepart = [dataDepart.i, dataDepart.j];
-                var posArrivee = [dataArrivee.i, dataArrivee.j];
-
-
-                if (chessGame.checkPossibleTiles(dataDepart).contains(posArrivee)) {
-                    event.target.firstChild.innerHTML = ui.draggable[0].innerHTML;
-                    ui.draggable[0].innerHTML = "";
-
-
-                    chessGame.currentState[posDepart[0]][posDepart[1]] = 0;
-                    chessGame.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
-
-                    chessGame.listePositions.push(chessGame.currentState);
-                    //chessGame.VisualizeState(chessGame.currentState, chessGame.currentTurn, chessGame.toWhite);
-                    chessGame.currentTurn++;
-                    chessGame.toWhite = !chessGame.toWhite;
-                    chessGame.toBlack = !chessGame.toBlack;
-
-
-                    //update front
-                    //update des datas des 2 tiles concernées
-                    $('#' + event.target.firstChild.id).data('position').p = $('#' + ui.draggable[0].id).data('position').p;
-                    $('#' + ui.draggable[0].id).data('position').p = 0;
-
-                    //on disable le drag and drop pour la couleur dont ce n'est pas le tour
-                    $(".piece").each(function () {
-                        if ($(this).data('position')) {
-
-                            var piece = $(this).data('position').p
-
-                            //si c'est au tour des blancs
-                            if (chessGame.toWhite) {
-                                //si la piece traitée est noire on disable sinon on enable
-                                if (chessGame.isBlack(piece)) {
-                                    //console.log("black disabled");
-                                    $(this).draggable('disable');
-                                } else if (chessGame.isWhite(piece)) {
-                                    //console.log("white enabled");
-                                    $(this).draggable({
-                                        helper: 'clone'
-                                    });
-                                    $(this).draggable('enable');
-                                }
-                            } else {
-                                //sinon c'est le tour des noirs et on inverse
-                                if (chessGame.isWhite(piece)) {
-                                    //console.log("white disabled");
-                                    $(this).draggable('disable');
-                                } else {
-                                    //console.log("black enabled");
-                                    $(this).draggable({
-                                        helper: 'clone'
-                                    });
-                                    $(this).draggable('enable');
-                                }
-                            }
-                        }
-                    });
-
-                }
             }
         });
     }
@@ -161,16 +102,15 @@ function LoadChessBoard() {
         var colonne = i % 8;
         $('#tile' + i).data('position', { i: ligne, j: colonne, p: chessGame.currentState[ligne][colonne] });
         $('#tile' + i).click(function () {
-            var data = $(this).data('position');
+           var data = $(this).data('position');
             var availablePositions = chessGame.checkPossibleTiles(data);
-            //afficher les cases possibles
 
-            console.log("Positions disponibles : " + availablePositions);
+            //console.log("Positions disponibles : " + availablePositions);
 
             //réinitialiser les cases
             resetIndications();
 
-
+            //afficher les cases possibles
             for (var i = 0; i < availablePositions.length; i++) {
 
                 var x = availablePositions[i][0];
@@ -197,6 +137,52 @@ function LoadChessBoard() {
                         targetElementInner.appendChild(tileJS);
                         targetElementOuter.appendChild(targetElementInner);
                         parent.append(targetElementOuter);
+                    }
+
+
+                    if ($('.dot').length > 0 || $('.targetOuter').length > 0) {
+                        chessGame.preview = true;    
+                        if (i == 0) {
+                            if (targetPiece != 0) {
+                                console.log("on coupe tous les events sur pieceContainer");
+                                $('.pieceContainer').off('click');
+                            }
+                        }
+                    } else {
+                        chessGame.preview = false;
+                    }
+
+
+                    if (chessGame.preview && chessGame.isColorTurn(data.p)) {
+                        //mettre un event sur le click pour bouger la piece directement
+                        console.log("on charger l'events");
+                        console.log(x + ',' + y);
+                        $(parent).click(function clickMove (event) {
+                            event.pro
+                            var dataDepart = data;
+                            var target = $(event.target);
+                            var piece;
+                            //clique sur la piece
+                            if ($(target).hasClass('piece')) {
+                                piece = target;
+                            }
+                            else {
+                                //clique sur le conteneur
+                                if ($(target).siblings('.piece').length == 0) {
+                                    piece = $(target).find('.piece');
+                                }
+                                //clique sur le dot
+                                else {
+                                    piece = $(target).siblings('.piece');
+                                }
+                            }
+                            var dataArrivee = $(piece).data('position');
+
+                            PlayMove(dataDepart, dataArrivee, chessGame);
+
+                            $(parent).off('click');
+
+                        });
                     }
                 }
             }
@@ -257,6 +243,8 @@ class ChessGame {
         this.toWhite = true;
         this.toBlack = false;
 
+        this.preview = false;
+
         //ajout des pièces noires
         this.initialState.push([this.BR, this.BN, this.BB, this.BQ, this.BK, this.BB, this.BN, this.BR])
         var whitePawnRow = []
@@ -296,6 +284,7 @@ class ChessGame {
         var i = data.i;
         var j = data.j;
 
+
         switch (data.p) {
             //roi blanc et roi noir
             case 1:
@@ -304,7 +293,6 @@ class ChessGame {
                     for (var y = -1; y < 2; y++) {
                         if (i + x >= 0 && i + x < 8 && j + y >= 0 && j + y < 8) {
                             if (this.currentState[i + x][j + y] == 0) {
-                                console.log("case traitée : " + (i + x) + "," + (j + y));
                                 freeTiles.push([i + x, j + y]);
                             }
                             else {
@@ -368,8 +356,6 @@ class ChessGame {
                 for (var t1 = 0; t1 < 2; t1++) {
                     for (var t2 = 0; t2 < 2; t2++) {
                         for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
-
-                            console.log(x + i + " / " + y + j);
 
                             if (this.currentState[i + x][j + y] == 0) {
                                 freeTiles.push([x + i, j + y]);
@@ -497,7 +483,7 @@ class ChessGame {
                 //si les pions sont sur leur ligne de départ alors +2 sinon + 1
                 if ((this.isWhite(data.p) && data.i == 6) || (this.isBlack(data.p) && data.i == 1)) {
                     for (var t = 1; t < 3; t++) {
-                        var x = direction*t;
+                        var x = direction * t;
                         if (x + i < 8 && x + i >= 0) {
                             if (this.currentState[i + x][j] == 0) {
                                 freeTiles.push([x + i, j]);
@@ -517,8 +503,6 @@ class ChessGame {
                 var directionDiag = [1, -1];
                 for (var t = 0; t < directionDiag.length; t++) {
                     if (i + direction < 8 && i + direction >= 0 && j + directionDiag[t] < 8 && j + directionDiag[t] >= 0) {
-
-                        console.log("test");
 
                         if (this.currentState[direction + i][j + directionDiag[t]] != 0) {
                             var dataD = { i: direction + i, j: j + directionDiag[t], p: this.currentState[i + direction][j + directionDiag[t]] }
@@ -562,6 +546,10 @@ class ChessGame {
 
     isSameColor(p1, p2) {
         return (this.isWhite(p1) && this.isWhite(p2)) || (this.isBlack(p1) && this.isBlack(p2));
+    }
+
+    isColorTurn(p) {
+        return (this.isBlack(p)) && this.toBlack || (this.isWhite(p) && (this.toWhite));
     }
 
     //Visualiser un etat
@@ -621,4 +609,66 @@ function resetIndications() {
         $(parent).append(piece);
     });
     $('.targetOuter').remove();
+}
+
+
+function PlayMove(dataDepart, dataArrivee, chessGame) {
+
+    resetIndications();
+
+
+    var posDepart = [dataDepart.i, dataDepart.j];
+    var posArrivee = [dataArrivee.i, dataArrivee.j];
+
+    if (chessGame.checkPossibleTiles(dataDepart).contains(posArrivee) && chessGame.isColorTurn(dataDepart.p)) {
+
+        $('#tile' + (dataArrivee.i * 8 + dataArrivee.j)).html($('#tile' + (dataDepart.i * 8 + dataDepart.j)).html());
+        $('#tile' + (dataDepart.i * 8 + dataDepart.j)).html('');
+
+        chessGame.currentState[posDepart[0]][posDepart[1]] = 0;
+        chessGame.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
+
+        chessGame.listePositions.push(chessGame.currentState);
+        //chessGame.VisualizeState(chessGame.currentState, chessGame.currentTurn, chessGame.toWhite);
+        chessGame.currentTurn++;
+        chessGame.toWhite = !chessGame.toWhite;
+        chessGame.toBlack = !chessGame.toBlack;
+
+
+        //update front
+        //update des datas des 2 tiles concernées
+        dataArrivee.p = dataDepart.p;
+        dataDepart.p = 0;
+
+        //on disable le drag and drop pour la couleur dont ce n'est pas le tour
+        $(".piece").each(function () {
+            if ($(this).data('position')) {
+
+                var piece = $(this).data('position').p
+
+                //si c'est au tour des blancs
+                if (chessGame.toWhite) {
+                    //si la piece traitée est noire on disable sinon on enable
+                    if (chessGame.isBlack(piece)) {
+                        $(this).draggable('disable');
+                    } else if (chessGame.isWhite(piece)) {
+                        $(this).draggable({
+                            helper: 'clone'
+                        });
+                        $(this).draggable('enable');
+                    }
+                } else {
+                    //sinon c'est le tour des noirs et on inverse
+                    if (chessGame.isWhite(piece)) {
+                        $(this).draggable('disable');
+                    } else {
+                        $(this).draggable({
+                            helper: 'clone'
+                        });
+                        $(this).draggable('enable');
+                    }
+                }
+            }
+        });
+    }
 }
