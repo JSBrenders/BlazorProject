@@ -43,14 +43,12 @@ function LoadChessBoard() {
 
             var numPiece = chessGame.initialState[i][j];
 
-            var piece = document.createElement("div");
-            piece.innerHTML = !numPiece ? "" : "&#" + (9811 + numPiece) + ";";
-            piece.classList.add("piece");
+            tile.innerHTML = !numPiece ? "" : "&#" + (9811 + numPiece) + ";";
+            tile.classList.add("piece");
 
-            piece.id = "tile" + tileNumber;
+            tile.id = "tile" + tileNumber;
             tileNumber++;
 
-            tile.appendChild(piece);
 
             row.appendChild(tile);
 
@@ -63,11 +61,14 @@ function LoadChessBoard() {
         $(".pieceContainer").droppable({
             //revert: true
             drop: function (event, ui) {
-
+                var childId = event.target.id;
+                if (!childId) {
+                    childId = event.target.firstChild.firstChild.firstChild.id;
+                }
                 var dataDepart = $("#" + ui.draggable[0].id).data('position');
-                var dataArrivee = $("#" + event.target.firstChild.id).data('position');
+                var dataArrivee = $("#" + childId).data('position');
                 //fonction de déclenchement du move
-                PlayMove(dataDepart, dataArrivee, chessGame);
+                chessGame.PlayMove(dataDepart, dataArrivee);
 
             }
         });
@@ -101,103 +102,32 @@ function LoadChessBoard() {
         var ligne = Math.trunc(i / 8, 0);
         var colonne = i % 8;
         $('#tile' + i).data('position', { i: ligne, j: colonne, p: chessGame.currentState[ligne][colonne] });
+
+        chessGame.listTileNotPreview.push($('#tile' + i));
+
         $('#tile' + i).click(function () {
-           var data = $(this).data('position');
-            var availablePositions = chessGame.checkPossibleTiles(data);
+            var data = $(this).data('position');
+            //Fonction de Preview
+            chessGame.GestionClick(data, true);
 
-            //console.log("Positions disponibles : " + availablePositions);
-
-            //réinitialiser les cases
-            resetIndications();
-
-            //afficher les cases possibles
-            for (var i = 0; i < availablePositions.length; i++) {
-
-                var x = availablePositions[i][0];
-                var y = availablePositions[i][1];
-
-                var tile = $('#tile' + (x * 8 + y));
-                var parent = $('#tile' + (x * 8 + y)).parent();
-
-                var tileJS = document.getElementById('tile' + (x * 8 + y));
-
-                var targetPiece = chessGame.currentState[x][y]
-
-
-                if (data.p != 0 && (targetPiece == 0 || !chessGame.isSameColor(data.p, targetPiece))) {
-                    if (targetPiece == 0) {
-                        var previewElement = document.createElement("span");
-                        previewElement.classList.add("dot");
-                        parent.append(previewElement);
-                    } else {
-                        var targetElementOuter = document.createElement('div');
-                        var targetElementInner = document.createElement('div');
-                        targetElementOuter.classList.add('targetOuter');
-                        targetElementInner.classList.add('targetInner');
-                        targetElementInner.appendChild(tileJS);
-                        targetElementOuter.appendChild(targetElementInner);
-                        parent.append(targetElementOuter);
-                    }
-
-
-                    if ($('.dot').length > 0 || $('.targetOuter').length > 0) {
-                        chessGame.preview = true;    
-                        if (i == 0) {
-                            if (targetPiece != 0) {
-                                console.log("on coupe tous les events sur pieceContainer");
-                                $('.pieceContainer').off('click');
-                            }
-                        }
-                    } else {
-                        chessGame.preview = false;
-                    }
-
-
-                    if (chessGame.preview && chessGame.isColorTurn(data.p)) {
-                        //mettre un event sur le click pour bouger la piece directement
-                        console.log("on charger l'events");
-                        console.log(x + ',' + y);
-                        $(parent).click(function clickMove (event) {
-                            event.pro
-                            var dataDepart = data;
-                            var target = $(event.target);
-                            var piece;
-                            //clique sur la piece
-                            if ($(target).hasClass('piece')) {
-                                piece = target;
-                            }
-                            else {
-                                //clique sur le conteneur
-                                if ($(target).siblings('.piece').length == 0) {
-                                    piece = $(target).find('.piece');
-                                }
-                                //clique sur le dot
-                                else {
-                                    piece = $(target).siblings('.piece');
-                                }
-                            }
-                            var dataArrivee = $(piece).data('position');
-
-                            PlayMove(dataDepart, dataArrivee, chessGame);
-
-                            $(parent).off('click');
-
-                        });
-                    }
-                }
-            }
         });
 
     }
 
     $(".piece").each(function () {
+        // <7 car on commence avec les blancs
         if ($(this).data('position').p < 7) {
             $(this).draggable({
-                helper: 'clone'
+                helper: 'clone',
+                start: function (event, ui) {
+                    console.log("drag");
+                    var data = $(event.target).data('position');
+                    console.log(data);
+                    chessGame.GestionClick(data);
+                }
             });
         }
     });
-
 }
 
 
@@ -243,7 +173,12 @@ class ChessGame {
         this.toWhite = true;
         this.toBlack = false;
 
-        this.preview = false;
+
+        this.selectedPiece;
+
+        this.listTilePreview = [];
+        this.listTileNotPreview = [];
+
 
         //ajout des pièces noires
         this.initialState.push([this.BR, this.BN, this.BB, this.BQ, this.BK, this.BB, this.BN, this.BR])
@@ -272,6 +207,9 @@ class ChessGame {
 
         this.currentState = this.initialState;
         this.currentTurn = 0;
+
+
+        this.VisualizeState(this.currentState, this.currentTurn, this.toWhite, false);
     }
 
 
@@ -525,14 +463,12 @@ class ChessGame {
 
     }
 
-
     //peut prendre la piece adverse ou non
     canTake(dataD, dataA) {
         var posD = [dataD.i, dataD.j]
         var posA = [dataA.i, dataA.j]
 
         return !this.isSameColor(dataD.p, dataA.p);
-
     }
 
     //renvoi la couleur de la piece
@@ -552,23 +488,180 @@ class ChessGame {
         return (this.isBlack(p)) && this.toBlack || (this.isWhite(p) && (this.toWhite));
     }
 
+    isSelectedPiece(pieceHTML) {
+        if (!this.selectedPiece) {
+            return false;
+        }
+        return this.selectedPiece.attr('id') == pieceHTML.attr('id');
+    }
+
+    isPreview() {
+        return this.listTilePreview.length > 0;
+    }
+
+    PlayMove(dataDepart, dataArrivee) {
+
+        resetIndications();
+
+
+        var posDepart = [dataDepart.i, dataDepart.j];
+        var posArrivee = [dataArrivee.i, dataArrivee.j];
+
+        if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p)) {
+
+            $('#tile' + (dataArrivee.i * 8 + dataArrivee.j)).html($('#tile' + (dataDepart.i * 8 + dataDepart.j)).html());
+            $('#tile' + (dataDepart.i * 8 + dataDepart.j)).html('');
+
+            this.currentState[posDepart[0]][posDepart[1]] = 0;
+            this.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
+
+            this.listePositions.push(this.currentState);
+            this.currentTurn++;
+            this.toWhite = !this.toWhite;
+            this.toBlack = !this.toBlack;
+            this.VisualizeState(this.currentState, this.currentTurn, this.toWhite);
+
+            //update front
+            //update des datas des 2 tiles concernées
+            dataArrivee.p = dataDepart.p;
+            dataDepart.p = 0;
+
+            var chessGame = this;
+
+            //on disable le drag and drop pour la couleur dont ce n'est pas le tour
+            $(".piece").each(function (index, pieceElement) {
+                if ($(pieceElement).data('position')) {
+
+                    var piece = $(pieceElement).data('position').p
+
+                    //si c'est au tour des blancs
+                    if (chessGame.toWhite) {
+                        //si la piece traitée est noire on disable sinon on enable
+                        if (chessGame.isBlack(piece)) {
+                            $(pieceElement).draggable('disable');
+                        } else if (chessGame.isWhite(piece)) {
+                            $(pieceElement).draggable({
+                                helper: 'clone'
+                            });
+                            $(pieceElement).draggable('enable');
+                        }
+                    } else {
+                        //sinon c'est le tour des noirs et on inverse
+                        if (chessGame.isWhite(piece)) {
+                            $(pieceElement).draggable('disable');
+                        } else {
+                            $(pieceElement).draggable({
+                                helper: 'clone'
+                            });
+                            $(pieceElement).draggable('enable');
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    GestionClick(data, click = false) {
+
+        var availablePositions = this.checkPossibleTiles(data);
+
+        //réinitialiser les cases
+        resetIndications();
+
+        var i = data.i;
+        var j = data.j;
+
+        var clickedElement = $('#tile' + (i * 8 + j));
+
+        //Si on re-clique sur le même élément on quitte la fonction
+        if (this.isSelectedPiece(clickedElement)){
+            return;
+        }
+
+        //si on clique sur une case vide qui n'appartient pas à la liste de preview, on reset les listes et on sort de la fonction
+        if (data.p == 0 && !this.listTilePreview.containsHTML(clickedElement)) {
+            this.EmptyPreviewList();
+            return;
+        }
+
+        this.selectedPiece = clickedElement;
+
+        //Gestion de la preview : on crée une liste des éléments HTML (les tiles) que la piece peut viser dans l'objet chessGame
+        //puis on y ajoute les events de click
+        //Après le move on supprime ces événements et on réinjecte l'event click de la preview
+        //this.listTilePreview détient la liste des tiles visées par la piece en preview
+        //this.listeTileNotPreview détient la liste des tiles qui peuvent passer en preview(toute piece différente de la piece en preview et de ses targets)
+        //la somme des 2 listes doit contenir toutes les pieces + les cases vides visées
+
+        //Si le point d'entrée c'est le drag on fait juste un preview
+
+
+        console.log(this.isPreview() ? 'Preview' : 'Pas Preview');
+
+        //Si on entre en preview
+        if (!this.isPreview()) {
+            this.BalancePreviewLists(availablePositions);
+        }
+        //Si on est déjà en preview
+        else {
+
+            if (!this.listTilePreview.containsHTML(clickedElement)) {
+                //on clique sur une autre piece -> on transfere le liste des preview dans la liste des non preview
+                this.EmptyPreviewList();
+                this.BalancePreviewLists(availablePositions);
+            } else {
+                //this.BalancePreviewLists(availablePositions);
+            }
+
+        }
+        console.log(this.listTilePreview.length);
+        console.log(this.listTileNotPreview.length);
+    }
+
+    BalancePreviewLists(availablePositions) {
+
+
+
+        for (var i = 0; i < availablePositions.length; i++) {
+
+            var iTarget = availablePositions[i][0];
+            var jTarget = availablePositions[i][1];
+            var targetElement = $('#tile' + (iTarget * 8 + jTarget));
+
+            var targetPieceType = this.currentState[iTarget][jTarget];
+
+
+            this.listTilePreview.push(targetElement);
+            if (!this.listTileNotPreview.deleteHTMLElement(targetElement)) {
+                console.log("L'élément à supprimer n'existe pas dans la liste des tiles qui ne sont pas en preview");
+            }
+
+        }
+    }
+
     //Visualiser un etat
     VisualizeState(State, index, white) {
 
         console.log("Position N°" + (index + 1) + " : " + (white ? "Trait aux blancs" : "Trait aux noirs"));
 
-        State.forEach(ligne => {
-            var row = "";
-            ligne.forEach(col => {
-                row += col + " ";
+        if (($('#detail').is(':checked'))) {
+            State.forEach(ligne => {
+                var row = "";
+                ligne.forEach(col => {
+                    row += col + " ";
+                });
+                console.log(row);
             });
-            console.log(row);
-        });
-
+        }
     }
+
+    EmptyPreviewList() {
+        this.listTileNotPreview = this.listTileNotPreview.concat(this.listTilePreview);
+        this.listTilePreview = [];
+    }
+
+
 }
-
-
 
 
 Array.prototype.contains = function (subArray) {
@@ -583,6 +676,15 @@ Array.prototype.contains = function (subArray) {
 
 
     return contain;
+}
+
+Array.prototype.containsHTML = function (element) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i].attr('id') == element.attr('id')) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Array.prototype.equals = function (Array2) {
@@ -601,74 +703,25 @@ Array.prototype.equals = function (Array2) {
     return equals;
 }
 
+Array.prototype.deleteHTMLElement = function (element) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i].attr('id') == element.attr('id')) {
+            var deletedElement = this.splice(i, 1);
+            return deletedElement;
+        }
+    }
+    return null;
+}
+
+
 function resetIndications() {
     $('.dot').remove();
-    $('.targetOuter').each(function () {
-        var piece = $(this).find('.piece');
-        var parent = $(this).parent();
-        $(parent).append(piece);
+    $('.targetInner').each(function () {
+        var innerHtml = $(this).html();
+        var parent = $(this).parent().parent();
+        $(parent).html(innerHtml);
     });
     $('.targetOuter').remove();
 }
 
 
-function PlayMove(dataDepart, dataArrivee, chessGame) {
-
-    resetIndications();
-
-
-    var posDepart = [dataDepart.i, dataDepart.j];
-    var posArrivee = [dataArrivee.i, dataArrivee.j];
-
-    if (chessGame.checkPossibleTiles(dataDepart).contains(posArrivee) && chessGame.isColorTurn(dataDepart.p)) {
-
-        $('#tile' + (dataArrivee.i * 8 + dataArrivee.j)).html($('#tile' + (dataDepart.i * 8 + dataDepart.j)).html());
-        $('#tile' + (dataDepart.i * 8 + dataDepart.j)).html('');
-
-        chessGame.currentState[posDepart[0]][posDepart[1]] = 0;
-        chessGame.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
-
-        chessGame.listePositions.push(chessGame.currentState);
-        //chessGame.VisualizeState(chessGame.currentState, chessGame.currentTurn, chessGame.toWhite);
-        chessGame.currentTurn++;
-        chessGame.toWhite = !chessGame.toWhite;
-        chessGame.toBlack = !chessGame.toBlack;
-
-
-        //update front
-        //update des datas des 2 tiles concernées
-        dataArrivee.p = dataDepart.p;
-        dataDepart.p = 0;
-
-        //on disable le drag and drop pour la couleur dont ce n'est pas le tour
-        $(".piece").each(function () {
-            if ($(this).data('position')) {
-
-                var piece = $(this).data('position').p
-
-                //si c'est au tour des blancs
-                if (chessGame.toWhite) {
-                    //si la piece traitée est noire on disable sinon on enable
-                    if (chessGame.isBlack(piece)) {
-                        $(this).draggable('disable');
-                    } else if (chessGame.isWhite(piece)) {
-                        $(this).draggable({
-                            helper: 'clone'
-                        });
-                        $(this).draggable('enable');
-                    }
-                } else {
-                    //sinon c'est le tour des noirs et on inverse
-                    if (chessGame.isWhite(piece)) {
-                        $(this).draggable('disable');
-                    } else {
-                        $(this).draggable({
-                            helper: 'clone'
-                        });
-                        $(this).draggable('enable');
-                    }
-                }
-            }
-        });
-    }
-}

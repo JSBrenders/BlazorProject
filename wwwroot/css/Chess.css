@@ -27,11 +27,12 @@
     width: 50px;
     height: 100px;
     line-height: 100px;
+    display:flex;
+    justify-content:center;
 }
 
 .number {
     vertical-align: middle;
-    text-align: center;
     font-weight: bold;
 }
 
@@ -59,8 +60,8 @@
 }
     .piece.ui-draggable-dragging {
         z-index:5;
-        /*border: none;
-        background:none;*/
+        border: none;
+        background:none;
     }
 
 .letter {
