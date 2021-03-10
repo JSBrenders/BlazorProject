@@ -1,6 +1,11 @@
 ﻿//création du plateau
 function LoadChessBoard() {
-    var board = document.getElementById("board")
+
+
+    var board = document.getElementById("board");
+
+    //empecher la selection
+    $(board).attr('unselectable', 'on');
 
     var chessGame = new ChessGame();
 
@@ -25,17 +30,17 @@ function LoadChessBoard() {
             var tile = document.createElement("div");
             if (i % 2 == 0) {
                 if (j % 2 == 0) {
-                    tile.classList.add("white")
+                    tile.classList.add("white");
                 }
                 else {
-                    tile.classList.add("black")
+                    tile.classList.add("black");
                 }
             } else {
                 if (j % 2 == 0) {
-                    tile.classList.add("black")
+                    tile.classList.add("black");
                 }
                 else {
-                    tile.classList.add("white")
+                    tile.classList.add("white");
                 }
             }
 
@@ -61,14 +66,16 @@ function LoadChessBoard() {
         $(".pieceContainer").droppable({
             //revert: true
             drop: function (event, ui) {
-                var childId = event.target.id;
-                if (!childId) {
-                    childId = event.target.firstChild.firstChild.firstChild.id;
+                if ($('#' + ui.draggable[0].id).data('position').p != 0) {
+                    var childId = event.target.id;
+                    if (!childId) {
+                        childId = event.target.firstChild.firstChild.firstChild.id;
+                    }
+                    var dataDepart = $("#" + ui.draggable[0].id).data('position');
+                    var dataArrivee = $("#" + childId).data('position');
+                    //fonction de déclenchement du move
+                    chessGame.PlayMove(dataDepart, dataArrivee);
                 }
-                var dataDepart = $("#" + ui.draggable[0].id).data('position');
-                var dataArrivee = $("#" + childId).data('position');
-                //fonction de déclenchement du move
-                chessGame.PlayMove(dataDepart, dataArrivee);
 
             }
         });
@@ -115,17 +122,16 @@ function LoadChessBoard() {
     }
 
     $(".piece").each(function () {
-        // <7 car on commence avec les blancs
-        if ($(this).data('position').p < 7) {
-            $(this).draggable({
-                helper: 'clone',
-                start: function (event, ui) {
-                    console.log("drag");
-                    var data = $(event.target).data('position');
-                    console.log(data);
-                    chessGame.GestionClick(data);
-                }
-            });
+        $(this).draggable({
+            helper: 'clone',
+            start: function (event, ui) {
+                var data = $(event.target).data('position');
+                chessGame.GestionClick(data);
+            }
+        });
+        // on désactive le drag'n'drop des pieces noires
+        if ($(this).data('position').p > 6) {
+            $(this).draggable('disable');
         }
     });
 }
@@ -558,6 +564,8 @@ class ChessGame {
                     }
                 }
             });
+
+            this.EmptyPreviewList();
         }
     }
 
@@ -565,8 +573,6 @@ class ChessGame {
 
         var availablePositions = this.checkPossibleTiles(data);
 
-        //réinitialiser les cases
-        resetIndications();
 
         var i = data.i;
         var j = data.j;
@@ -574,9 +580,13 @@ class ChessGame {
         var clickedElement = $('#tile' + (i * 8 + j));
 
         //Si on re-clique sur le même élément on quitte la fonction
-        if (this.isSelectedPiece(clickedElement)){
+        if (this.isSelectedPiece(clickedElement) && click) {
             return;
         }
+
+        //réinitialiser les cases
+        resetIndications();
+
 
         //si on clique sur une case vide qui n'appartient pas à la liste de preview, on reset les listes et on sort de la fonction
         if (data.p == 0 && !this.listTilePreview.containsHTML(clickedElement)) {
@@ -600,15 +610,16 @@ class ChessGame {
 
         //Si on entre en preview
         if (!this.isPreview()) {
-            this.BalancePreviewLists(availablePositions);
+            this.LaunchPreview(data, availablePositions);
         }
         //Si on est déjà en preview
         else {
 
             if (!this.listTilePreview.containsHTML(clickedElement)) {
                 //on clique sur une autre piece -> on transfere le liste des preview dans la liste des non preview
+                //On veut afficher la preview de cette autre piece
                 this.EmptyPreviewList();
-                this.BalancePreviewLists(availablePositions);
+                this.LaunchPreview(data, availablePositions);
             } else {
                 //this.BalancePreviewLists(availablePositions);
             }
@@ -618,9 +629,7 @@ class ChessGame {
         console.log(this.listTileNotPreview.length);
     }
 
-    BalancePreviewLists(availablePositions) {
-
-
+    LaunchPreview(data, availablePositions) {
 
         for (var i = 0; i < availablePositions.length; i++) {
 
@@ -630,12 +639,38 @@ class ChessGame {
 
             var targetPieceType = this.currentState[iTarget][jTarget];
 
-
             this.listTilePreview.push(targetElement);
             if (!this.listTileNotPreview.deleteHTMLElement(targetElement)) {
                 console.log("L'élément à supprimer n'existe pas dans la liste des tiles qui ne sont pas en preview");
             }
 
+            var dataTarget = { i: iTarget, j: jTarget, p: targetPieceType };
+
+            this.AfficherPreview(data, dataTarget, targetElement);
+
+        }
+    }
+
+    AfficherPreview(data, dataTarget, targetElement) {
+
+        if (data.p != 0 && (targetElement == 0 || !this.isSameColor(data.p, targetElement))) {
+
+            if (dataTarget.p == 0) {
+                var previewElement = document.createElement("span");
+                previewElement.classList.add("dot");
+                targetElement.append(previewElement);
+            } else {
+            console.log('here');
+                var innerHtml = targetElement.html();
+                var targetElementOuter = document.createElement('div');
+                var targetElementInner = document.createElement('div');
+                targetElementOuter.classList.add('targetOuter');
+                targetElementInner.classList.add('targetInner');
+                targetElementInner.innerHTML = innerHtml;
+                targetElementOuter.appendChild(targetElementInner);
+                targetElement.html('');
+                targetElement.append(targetElementOuter);
+            }
         }
     }
 
