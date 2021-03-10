@@ -10,16 +10,14 @@
     {
       "library": "jquery@3.6.0",
       "destination": "wwwroot/lib/jquery/"
+    },
+    {
+      "library": "jqueryui@1.12.1",
+      "destination": "wwwroot/lib/jqueryui/"
+    },
+    {
+      "library": "lodash.js@4.17.21",
+      "destination": "wwwroot/lodash.js/"
     }
-  ,
-{
-  "library": "jqueryui@1.12.1",
-  "destination": "wwwroot/lib/jqueryui/"
-}
-,
-{
-  "library": "jqueryui@1.12.1",
-  "destination": "wwwroot/lib/jqueryui/"
-}
-]
+  ]
 }

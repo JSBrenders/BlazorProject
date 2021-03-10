@@ -2,17 +2,33 @@
 
 @inject IJSRuntime jsruntime
 
-<input id="detail" class="ml-5" type="checkbox"/>
-<label class="label">Trame détaillée</label>
+    <div class="d-flex flex-row">
 
-<div class="justify-content-center disable-select " id="board"></div>
+        <div class="d-flex flex-column">
+            <div class="d-flex flex-row align-items-baseline">
+                <input id="detail" class="ml-5" type="checkbox" />
+                <p class="ml-2">Trame détaillée</p>
+            </div>
+
+            <div class="justify-content-center disable-select " id="board"></div>
+
+        </div>
+
+        <div class="d-flex  align-items-center ml-5">
+            <div class="d-flex flex-column align-items-center">
+                <h2 id="trait">Trait aux blancs</h2>
+                <button class="btn btn-primary mt-3 w-75" id="replay">Rejouer</button>
+            </div>
+        </div>
+
+    </div>
 
 
-@code {        
+    @code {
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await jsruntime.InvokeVoidAsync("LoadChessBoard");
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await jsruntime.InvokeVoidAsync("LoadChessBoard");
+        }
+
     }
-
-}

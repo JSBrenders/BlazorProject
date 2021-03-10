@@ -1,8 +1,11 @@
 ﻿//création du plateau
 function LoadChessBoard() {
 
+    $('#replay').hide();
 
     var board = document.getElementById("board");
+
+    board.innerHTML = '';
 
     //empecher la selection
     $(board).attr('unselectable', 'on');
@@ -221,13 +224,16 @@ class ChessGame {
 
     //On vérifie les cases possibles sur le board
     //data.i = ligne, data.j = colonne, data.p = numéro du type de piece
-    checkPossibleTiles(data) {
+    checkPossibleTiles(data, State = null) {
         //on va renvoyer une liste d'objet pos = (ligne,colonne) de cases libres ou de pièces à prendre
+
+        //si on veut un state en particulier (State non null) 
+        var currentState = State == null ? this.currentState : State;
+
         var freeTiles = [];
 
         var i = data.i;
         var j = data.j;
-
 
         switch (data.p) {
             //roi blanc et roi noir
@@ -236,11 +242,11 @@ class ChessGame {
                 for (var x = -1; x < 2; x++) {
                     for (var y = -1; y < 2; y++) {
                         if (i + x >= 0 && i + x < 8 && j + y >= 0 && j + y < 8) {
-                            if (this.currentState[i + x][j + y] == 0) {
+                            if (currentState[i + x][j + y] == 0) {
                                 freeTiles.push([i + x, j + y]);
                             }
                             else {
-                                var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                                var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                                 if (this.canTake(data, dataD)) {
                                     var pos = [i + x, j + y]
                                     freeTiles.push(pos);
@@ -262,12 +268,12 @@ class ChessGame {
                 var directionVertical = [1, -1];
                 for (var t = 0; t < 2; t++) {
                     for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
-                        if (this.currentState[x + i][j] == 0) {
+                        if (currentState[x + i][j] == 0) {
                             ;
                             freeTiles.push([x + i, j]);
                         }
                         else {
-                            var dataD = { i: x + i, j: j, p: this.currentState[x + i][j] }
+                            var dataD = { i: x + i, j: j, p: currentState[x + i][j] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [x + i, j]
                                 freeTiles.push(pos);
@@ -280,11 +286,11 @@ class ChessGame {
                 var directionHorizontal = [1, -1];
                 for (var t = 0; t < 2; t++) {
                     for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
-                        if (this.currentState[i][j + y] == 0) {
+                        if (currentState[i][j + y] == 0) {
                             freeTiles.push([i, j + y]);
                         }
                         else {
-                            var dataD = { i: i, j: j + y, p: this.currentState[i][j + y] }
+                            var dataD = { i: i, j: j + y, p: currentState[i][j + y] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [i, j + y]
                                 freeTiles.push(pos);
@@ -301,11 +307,11 @@ class ChessGame {
                     for (var t2 = 0; t2 < 2; t2++) {
                         for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
 
-                            if (this.currentState[i + x][j + y] == 0) {
+                            if (currentState[i + x][j + y] == 0) {
                                 freeTiles.push([x + i, j + y]);
                             }
                             else {
-                                var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                                var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                                 if (this.canTake(data, dataD)) {
                                     var pos = [x + i, j + y]
                                     freeTiles.push(pos);
@@ -326,12 +332,12 @@ class ChessGame {
                 var directionVertical = [1, -1];
                 for (var t = 0; t < 2; t++) {
                     for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
-                        if (this.currentState[x + i][j] == 0) {
+                        if (currentState[x + i][j] == 0) {
                             ;
                             freeTiles.push([x + i, j]);
                         }
                         else {
-                            var dataD = { i: x + i, j: j, p: this.currentState[x + i][j] }
+                            var dataD = { i: x + i, j: j, p: currentState[x + i][j] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [x + i, j]
                                 freeTiles.push(pos);
@@ -344,11 +350,11 @@ class ChessGame {
                 var directionHorizontal = [1, -1];
                 for (var t = 0; t < 2; t++) {
                     for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
-                        if (this.currentState[i][j + y] == 0) {
+                        if (currentState[i][j + y] == 0) {
                             freeTiles.push([i, j + y]);
                         }
                         else {
-                            var dataD = { i: i, j: j + y, p: this.currentState[i][j + y] }
+                            var dataD = { i: i, j: j + y, p: currentState[i][j + y] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [i, j + y]
                                 freeTiles.push(pos);
@@ -369,11 +375,11 @@ class ChessGame {
                     for (var t2 = 0; t2 < 2; t2++) {
                         for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
 
-                            if (this.currentState[i + x][j + y] == 0) {
+                            if (currentState[i + x][j + y] == 0) {
                                 freeTiles.push([x + i, j + y]);
                             }
                             else {
-                                var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                                var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                                 if (this.canTake(data, dataD)) {
                                     var pos = [x + i, j + y]
                                     freeTiles.push(pos);
@@ -400,11 +406,11 @@ class ChessGame {
                     var y = directionJ[t];
 
                     if (x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0) {
-                        if (this.currentState[i + x][j + y] == 0) {
+                        if (currentState[i + x][j + y] == 0) {
                             freeTiles.push([x + i, j + y]);
                         }
                         else {
-                            var dataD = { i: i + x, j: j + y, p: this.currentState[i + x][j + y] }
+                            var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [x + i, j + y]
                                 freeTiles.push(pos);
@@ -429,7 +435,7 @@ class ChessGame {
                     for (var t = 1; t < 3; t++) {
                         var x = direction * t;
                         if (x + i < 8 && x + i >= 0) {
-                            if (this.currentState[i + x][j] == 0) {
+                            if (currentState[i + x][j] == 0) {
                                 freeTiles.push([x + i, j]);
                             }
                         }
@@ -437,7 +443,7 @@ class ChessGame {
                 } else {
                     var x = direction;
                     if (x + i < 8 && x + i >= 0) {
-                        if (this.currentState[i + x][j] == 0) {
+                        if (currentState[i + x][j] == 0) {
                             freeTiles.push([x + i, j]);
                         }
                     }
@@ -448,8 +454,8 @@ class ChessGame {
                 for (var t = 0; t < directionDiag.length; t++) {
                     if (i + direction < 8 && i + direction >= 0 && j + directionDiag[t] < 8 && j + directionDiag[t] >= 0) {
 
-                        if (this.currentState[direction + i][j + directionDiag[t]] != 0) {
-                            var dataD = { i: direction + i, j: j + directionDiag[t], p: this.currentState[i + direction][j + directionDiag[t]] }
+                        if (currentState[direction + i][j + directionDiag[t]] != 0) {
+                            var dataD = { i: direction + i, j: j + directionDiag[t], p: currentState[i + direction][j + directionDiag[t]] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [i + direction, j + directionDiag[t]]
                                 freeTiles.push(pos);
@@ -464,10 +470,102 @@ class ChessGame {
         }
     }
 
-    //si il y a un check
-    isCheked() {
-
+    posToElement(pos) {
+        return $('#tile' + (pos[0] * 8 + pos[1]));
     }
+
+
+
+    //Utilisation :
+    //Si checkSelfKing est null on est dans le cas où on veut vérifier si l'adversaire nous a mis en échec
+    //Si checkSelfKing est non null on est dans le cas où on veut vérifier notre coup va ou non nous mettre en échec
+    isInCheck(isWhiteTurn, checkSelfKing = null, State = null) {
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+
+                var currentState = State == null ? this.currentState : State;
+
+                var piece = currentState[i][j];
+                var data = { i: i, j: j, p: piece };
+
+                //Dans le cas de checkSelfKing null on ne prend que les piece (pas les cases vides) et les pièces adverse et on regarde notre roi
+                //Dans le cas de checkSelfKing non null on prend les pieces adverses et on regarde notre roi dans le state 'provisoire'
+                if ((this.isWhite(data.p) && !isWhiteTurn || this.isBlack(data.p) && isWhiteTurn) && data.p != 0) {
+                    var targets = this.checkPossibleTiles(data, State);
+                    for (var k = 0; k < targets.length; k++) {
+                        var targetType = currentState[targets[k][0]][targets[k][1]];
+
+                        //var kingColor;
+                        //if (isWhiteTurn && !Self == null) {
+                        //    kingColor = 
+                        //}
+
+                        if (targetType == (isWhiteTurn ? 1 : 7)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    willBeInCheck(dataD, dataA, isWhiteTurn) {
+        //si le coup va mettre le roi en échec, renvoie true
+
+        var state = _.cloneDeep(this.currentState);
+
+        var posDepart = [dataD.i, dataD.j];
+        var posArrivee = [dataA.i, dataA.j];
+
+        state[posDepart[0]][posDepart[1]] = 0;
+        state[posArrivee[0]][posArrivee[1]] = dataD.p;
+
+        if (this.isInCheck(isWhiteTurn, true, state)) {
+            //console.log('Cannot play that, you will be in check...');
+            return true;
+        }
+
+        return false;
+    }
+
+    //p représente la couleur du joueur dont on vérifie s'il est mis en échec et mat (entre 1 et 6 blanc, entre 7 et 12 noir)
+    checkMate(p) {
+
+        for (var i = 0; i < 8; i++) {
+            //on regarde les pièces du joueur et dès qu'on trouve un coup possible on retourne faux, sinon c'est qu'il n'a aucun coup possible et on retourne true
+            for (var j = 0; j < 8; j++) {
+                var piece = this.currentState[i][j];
+
+                var data = { i: i, j: j, p: piece };
+
+                if (this.getColor(p) == this.getColor(piece)) {
+
+                    var availablePositions = this.checkPossibleTiles(data);
+
+                    for (var k = 0; k < availablePositions.length; k++) {
+
+                        var dataTarget = { i: availablePositions[k][0], j: availablePositions[k][1], p: piece };
+
+                        if (!this.willBeInCheck(data, dataTarget, this.isWhite(data.p))) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        console.log("CHECKMATE !!!");
+        return true;
+    }
+
+    //p représente la couleur du vainqueur (entre 1 et 6 blanc, entre 7 et 12 noir)
+    endGame(p) {
+        console.log('Grats to the ' + this.getColor(p));
+        $('#trait').html('Grats to the ' + this.getColor(p));
+        $('#replay').click(LoadChessBoard);
+        $('#replay').show();
+    }
+
 
     //peut prendre la piece adverse ou non
     canTake(dataD, dataA) {
@@ -475,6 +573,18 @@ class ChessGame {
         var posA = [dataA.i, dataA.j]
 
         return !this.isSameColor(dataD.p, dataA.p);
+    }
+
+    getColor(p) {
+        if (this.isWhite(p)) {
+            return "white";
+        }
+        else if (this.isBlack(p)) {
+            return "black";
+        }
+        else {
+            return "vide";
+        }
     }
 
     //renvoi la couleur de la piece
@@ -513,7 +623,8 @@ class ChessGame {
         var posDepart = [dataDepart.i, dataDepart.j];
         var posArrivee = [dataArrivee.i, dataArrivee.j];
 
-        if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p)) {
+        //if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.isInCheck() && !this.willBeInCheck()) {
+        if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
 
             $('#tile' + (dataArrivee.i * 8 + dataArrivee.j)).html($('#tile' + (dataDepart.i * 8 + dataDepart.j)).html());
             $('#tile' + (dataDepart.i * 8 + dataDepart.j)).html('');
@@ -526,6 +637,9 @@ class ChessGame {
             this.toWhite = !this.toWhite;
             this.toBlack = !this.toBlack;
             this.VisualizeState(this.currentState, this.currentTurn, this.toWhite);
+
+            //on enleve le check si il y a check
+            $('.check').removeClass('check');
 
             //update front
             //update des datas des 2 tiles concernées
@@ -566,23 +680,40 @@ class ChessGame {
             });
 
             this.EmptyPreviewList();
+
+            //on si la pièce dans la position d'arrivée met en écheck le roi adverse
+            var chessGameL = this;
+            var listNewTargets = this.checkPossibleTiles(dataArrivee);
+            listNewTargets.forEach(function (element) {
+                var i = element[0];
+                var j = element[1];
+                if (chessGameL.currentState[i][j] == 1 || chessGameL.currentState[i][j] == 7) {
+                    var roiElement = chessGameL.posToElement([i, j]);
+                    roiElement.addClass('check');
+                    //on vérifie si on a une situation de checkMate
+                    if (chessGameL.checkMate(chessGameL.toWhite ? 1 : 7)) {
+                        //Si checkMate on passe en parametre le vainqueur
+                        chessGameL.endGame(chessGameL.toWhite ? 7 : 1);
+                    }
+                }
+            });
         }
     }
 
     GestionClick(data, click = false) {
 
-        var availablePositions = this.checkPossibleTiles(data);
-
-
         var i = data.i;
         var j = data.j;
-
         var clickedElement = $('#tile' + (i * 8 + j));
-
         //Si on re-clique sur le même élément on quitte la fonction
         if (this.isSelectedPiece(clickedElement) && click) {
             return;
         }
+
+        var availablePositions = this.checkPossibleTiles(data);
+
+
+        var dataSelectedPiece = $(this.selectedPiece).data('position');
 
         //réinitialiser les cases
         resetIndications();
@@ -606,7 +737,7 @@ class ChessGame {
         //Si le point d'entrée c'est le drag on fait juste un preview
 
 
-        console.log(this.isPreview() ? 'Preview' : 'Pas Preview');
+        //console.log(this.isPreview() ? 'Preview' : 'Pas Preview');
 
         //Si on entre en preview
         if (!this.isPreview()) {
@@ -616,35 +747,42 @@ class ChessGame {
         else {
 
             if (!this.listTilePreview.containsHTML(clickedElement)) {
-                //on clique sur une autre piece -> on transfere le liste des preview dans la liste des non preview
+                //On clique sur une autre piece -> on transfere le liste des preview dans la liste des non preview
                 //On veut afficher la preview de cette autre piece
                 this.EmptyPreviewList();
                 this.LaunchPreview(data, availablePositions);
             } else {
-                //this.BalancePreviewLists(availablePositions);
+                //on déclenche le move, on récupère la pièce sélectionnée et l'inject avec la tile cliquée
+                this.PlayMove(dataSelectedPiece, data)
             }
 
         }
-        console.log(this.listTilePreview.length);
-        console.log(this.listTileNotPreview.length);
+        //console.log(this.listTilePreview.length);
+        //console.log(this.listTileNotPreview.length);
     }
 
     LaunchPreview(data, availablePositions) {
 
         for (var i = 0; i < availablePositions.length; i++) {
 
+
             var iTarget = availablePositions[i][0];
             var jTarget = availablePositions[i][1];
             var targetElement = $('#tile' + (iTarget * 8 + jTarget));
 
             var targetPieceType = this.currentState[iTarget][jTarget];
+            var dataTarget = { i: iTarget, j: jTarget, p: targetPieceType };
+
+            if (this.willBeInCheck(data, dataTarget, this.isWhite(data.p))) {
+                continue;
+            }
+
 
             this.listTilePreview.push(targetElement);
             if (!this.listTileNotPreview.deleteHTMLElement(targetElement)) {
                 console.log("L'élément à supprimer n'existe pas dans la liste des tiles qui ne sont pas en preview");
             }
 
-            var dataTarget = { i: iTarget, j: jTarget, p: targetPieceType };
 
             this.AfficherPreview(data, dataTarget, targetElement);
 
@@ -660,7 +798,6 @@ class ChessGame {
                 previewElement.classList.add("dot");
                 targetElement.append(previewElement);
             } else {
-            console.log('here');
                 var innerHtml = targetElement.html();
                 var targetElementOuter = document.createElement('div');
                 var targetElementInner = document.createElement('div');
@@ -675,11 +812,13 @@ class ChessGame {
     }
 
     //Visualiser un etat
-    VisualizeState(State, index, white) {
+    VisualizeState(State, index = null, white = null) {
 
-        console.log("Position N°" + (index + 1) + " : " + (white ? "Trait aux blancs" : "Trait aux noirs"));
+        if (index) {
+            //console.log("Position N°" + (index + 1) + " : " + (white ? "Trait aux blancs" : "Trait aux noirs"));
+        }
 
-        if (($('#detail').is(':checked'))) {
+        if (($('#detail').is(':checked')) || index == null) {
             State.forEach(ligne => {
                 var row = "";
                 ligne.forEach(col => {
@@ -688,11 +827,16 @@ class ChessGame {
                 console.log(row);
             });
         }
+
+        $('#trait').html((white ? "Trait aux blancs" : "Trait aux noirs"));
     }
 
     EmptyPreviewList() {
         this.listTileNotPreview = this.listTileNotPreview.concat(this.listTilePreview);
         this.listTilePreview = [];
+
+        //reset de l'événement click
+
     }
 
 

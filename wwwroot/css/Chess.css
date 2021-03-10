@@ -53,6 +53,7 @@
     line-height: 100px;
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 .piece {
@@ -106,4 +107,17 @@
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+/*
+.circle {
+    width: 400px;
+    height: 400px;
+    background-color: red;
+    border-radius: 100%;
+    box-shadow: 0 0 500px 50px #e78267;
+    opacity:0.7;
+}*/
+
+.check {
+    background: radial-gradient(ellipse at center, red 0%, #ff0000 25%, rgb(255 255 255 / 82%) 89%, rgb(255 255 255) 100%);
 }
