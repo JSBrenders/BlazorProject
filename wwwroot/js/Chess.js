@@ -3,6 +3,8 @@ function LoadChessBoard() {
 
     $('#replay').hide();
 
+
+
     var board = document.getElementById("board");
 
     board.innerHTML = '';
@@ -11,6 +13,12 @@ function LoadChessBoard() {
     $(board).attr('unselectable', 'on');
 
     var chessGame = new ChessGame();
+
+    $('#giveUp').show();
+    $('#giveUp').click(function () {
+        //si les blancs abandonnent on passe en parametre les noirs
+        chessGame.endGame(chessGame.toWhite ? 7 : 1, true);
+    });
 
     var tileNumber = 0;
 
@@ -558,10 +566,34 @@ class ChessGame {
         return true;
     }
 
-    //p représente la couleur du vainqueur (entre 1 et 6 blanc, entre 7 et 12 noir)
-    endGame(p) {
+    //p représente la couleur du vainqueur (entre 1 et 6 blanc, entre 7 et 12 noir) forfeit est un paramètre optionnel pour gérer l'abandon
+    endGame(p, forfeit = false) {
+
         console.log('Grats to the ' + this.getColor(p));
-        $('#trait').html('Grats to the ' + this.getColor(p));
+
+        var ffColor;
+        if (this.getColor(p) == "black") {
+            ffColor = 'Blancs';
+        } else if (this.getColor(p) == "white") {
+            ffColor = 'Noirs';
+        }
+
+        var winnerColor;
+        if (this.getColor(p) == "white") {
+            winnerColor = 'Blancs';
+        } else if (this.getColor(p) == "black") {
+            winnerColor = 'Noirs';
+        }
+
+        console.log(forfeit);
+
+        if (forfeit) {
+            $('#trait').html('Les ' + ffColor + ' ont abandonnés : Victoire des ' + winnerColor);
+        }else {
+            $('#trait').html('Félicitation aux ' + winnerColor + ' ! Victoire par  Echec et Mat !');
+        }
+
+        $('#giveUp').hide();
         $('#replay').click(LoadChessBoard);
         $('#replay').show();
     }
@@ -626,8 +658,44 @@ class ChessGame {
         //if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.isInCheck() && !this.willBeInCheck()) {
         if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
 
-            $('#tile' + (dataArrivee.i * 8 + dataArrivee.j)).html($('#tile' + (dataDepart.i * 8 + dataDepart.j)).html());
-            $('#tile' + (dataDepart.i * 8 + dataDepart.j)).html('');
+            var elementDepart = $('#tile' + (dataDepart.i * 8 + dataDepart.j));
+            var elementArrivee = $('#tile' + (dataArrivee.i * 8 + dataArrivee.j));
+
+
+            //Gestion de la transition
+            //on calcul la distance entre le point de départ et le point d'arrivée
+            //on créer une classe temporaire de déplacement css et on l'ajoute à la case
+
+            var positionDepart = elementDepart.position();
+            var positionArrivee = elementArrivee.position();
+
+
+            var parcouruLeft = positionArrivee.left - positionDepart.left;
+            var parcouruTop = positionArrivee.top - positionDepart.top;
+
+            //console.log(positionDepart);
+            //console.log(positionArrivee);
+            console.log('parcouruLeft : ' + parcouruLeft);
+            console.log('parcouruTop : ' + parcouruTop);
+
+
+
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = '.cssClass { position: absolute; left: ' + positionArrivee.left + 'px; top : ' + positionArrivee.top + 'px }';
+            document.getElementsByTagName('head')[0].appendChild(style);
+
+            elementDepart.addClass('cssClass');
+            //document.getElementById('someElementId').className = 'cssClass';
+
+            return;
+
+
+
+
+
+            elementArrivee.html(elementDepart.html());
+            elementDepart.html('');
 
             this.currentState[posDepart[0]][posDepart[1]] = 0;
             this.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
@@ -678,6 +746,10 @@ class ChessGame {
                     }
                 }
             });
+
+          
+
+
 
             this.EmptyPreviewList();
 

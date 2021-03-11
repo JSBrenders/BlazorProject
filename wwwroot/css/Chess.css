@@ -54,6 +54,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: left 2s, top 2s;
 }
 
 .piece {
