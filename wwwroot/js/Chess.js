@@ -20,15 +20,13 @@ function LoadChessBoard() {
         chessGame.endGame(chessGame.toWhite ? 7 : 1, true);
     });
 
-    var tileNumber = 0;
-
     for (var i = 0; i < 8; i++) {
 
-        var row = document.createElement("div");
+        var row = document.createElement("row");
         row.classList.add("d-flex")
         row.classList.add("flex-row")
 
-        var position = document.createElement("div");
+        var position = document.createElement("number");
         position.classList.add("numberContainer");
         var text = document.createElement("span");
         text.classList.add("number");
@@ -38,35 +36,36 @@ function LoadChessBoard() {
 
         for (var j = 0; j < 8; j++) {
 
-            var tile = document.createElement("div");
+            var square = document.createElement("square");
             if (i % 2 == 0) {
                 if (j % 2 == 0) {
-                    tile.classList.add("white");
+                    square.classList.add("white");
                 }
                 else {
-                    tile.classList.add("black");
+                    square.classList.add("black");
                 }
             } else {
                 if (j % 2 == 0) {
-                    tile.classList.add("black");
+                    square.classList.add("black");
                 }
                 else {
-                    tile.classList.add("white");
+                    square.classList.add("white");
                 }
             }
 
-            tile.classList.add("pieceContainer");
+            square.classList.add("pieceContainer");
 
             var numPiece = chessGame.initialState[i][j];
 
-            tile.innerHTML = !numPiece ? "" : "&#" + (9811 + numPiece) + ";";
-            tile.classList.add("piece");
+            var piece = 
 
-            tile.id = "tile" + tileNumber;
-            tileNumber++;
+            square.innerHTML = !numPiece ? "" : "&#" + (9811 + numPiece) + ";";
+            square.classList.add("piece");
+
+            square.id = String.fromCharCode(97 + j) + (8-i);
 
 
-            row.appendChild(tile);
+            row.appendChild(square);
 
 
         }
@@ -93,17 +92,17 @@ function LoadChessBoard() {
     }
 
     //ajout des lettres en bas
-    var row = document.createElement("div");
+    var row = document.createElement("lettreRow");
     row.classList.add("d-flex")
     row.classList.add("flex-row")
 
-    var cornerPosition = document.createElement("div");
+    var cornerPosition = document.createElement("corner");
     cornerPosition.classList.add("corner");
     row.appendChild(cornerPosition);
 
     for (var j = 0; j < 8; j++) {
 
-        var position = document.createElement("div");
+        var position = document.createElement("row");
         position.classList.add("letterContainer");
         var text = document.createElement("span");
         text.classList.add("letter");
@@ -116,20 +115,23 @@ function LoadChessBoard() {
     board.appendChild(row);
 
     //affectation data sur chaque tile
-    for (var i = 0; i < 64; i++) {
-        var ligne = Math.trunc(i / 8, 0);
-        var colonne = i % 8;
-        $('#tile' + i).data('position', { i: ligne, j: colonne, p: chessGame.currentState[ligne][colonne] });
+    for (var i = 0; i < 8; i++) {
+        for (var j = 0; j < 8; j++) {
+            console.log(chessGame.getSquareId(i, j));
+            var ligne = Math.trunc(i / 8, 0);
+            var colonne = i % 8;
 
-        chessGame.listTileNotPreview.push($('#tile' + i));
+            $(chessGame.getSquareId(i,j)).data('position', { i: ligne, j: colonne, p: chessGame.currentState[ligne][colonne] });
 
-        $('#tile' + i).click(function () {
-            var data = $(this).data('position');
-            //Fonction de Preview
-            chessGame.GestionClick(data, true);
+            chessGame.listTileNotPreview.push($(chessGame.getSquareId(i, j)));
 
-        });
+            $(chessGame.getSquareId(i, j)).click(function () {
+                var data = $(this).data('position');
+                //Fonction de Preview
+                chessGame.GestionClick(data, true);
 
+            });
+        }
     }
 
     $(".piece").each(function () {
@@ -479,7 +481,7 @@ class ChessGame {
     }
 
     posToElement(pos) {
-        return $('#tile' + (pos[0] * 8 + pos[1]));
+        return $(this.getSquareId(pos[0],pos[1]));
     }
 
 
@@ -585,8 +587,6 @@ class ChessGame {
             winnerColor = 'Noirs';
         }
 
-        console.log(forfeit);
-
         if (forfeit) {
             $('#trait').html('Les ' + ffColor + ' ont abandonnés : Victoire des ' + winnerColor);
         }else {
@@ -605,6 +605,15 @@ class ChessGame {
         var posA = [dataA.i, dataA.j]
 
         return !this.isSameColor(dataD.p, dataA.p);
+    }
+
+    //on retourne "a1" pour la case 7,0
+    getSquare(i, j) {
+        return String.fromCharCode(97 + i) + (8 - j);
+    }
+
+    getSquareId(i, j) {
+        return '#' + String.fromCharCode(97 + i) + (8 - j);
     }
 
     getColor(p) {
@@ -658,8 +667,8 @@ class ChessGame {
         //if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.isInCheck() && !this.willBeInCheck()) {
         if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
 
-            var elementDepart = $('#tile' + (dataDepart.i * 8 + dataDepart.j));
-            var elementArrivee = $('#tile' + (dataArrivee.i * 8 + dataArrivee.j));
+            var elementDepart = $(this.getSquareId(dataDepart.i, dataDepart.j));
+            var elementArrivee = $(this.getSquareId(dataArrivee.i, dataArrivee.j));
 
 
             //Gestion de la transition
@@ -682,7 +691,7 @@ class ChessGame {
 
             var style = document.createElement('style');
             style.type = 'text/css';
-            style.innerHTML = '.cssClass { position: absolute; left: ' + positionArrivee.left + 'px; top : ' + positionArrivee.top + 'px }';
+            style.innerHTML = '.cssClass { left: ' + positionArrivee.left + 'px; top : ' + positionArrivee.top + 'px }';
             document.getElementsByTagName('head')[0].appendChild(style);
 
             elementDepart.addClass('cssClass');
@@ -776,7 +785,7 @@ class ChessGame {
 
         var i = data.i;
         var j = data.j;
-        var clickedElement = $('#tile' + (i * 8 + j));
+        var clickedElement = $(this.getSquareId(i,j));
         //Si on re-clique sur le même élément on quitte la fonction
         if (this.isSelectedPiece(clickedElement) && click) {
             return;
@@ -840,7 +849,7 @@ class ChessGame {
 
             var iTarget = availablePositions[i][0];
             var jTarget = availablePositions[i][1];
-            var targetElement = $('#tile' + (iTarget * 8 + jTarget));
+            var targetElement = $(this.getSquareId(iTarget, jTarget));
 
             var targetPieceType = this.currentState[iTarget][jTarget];
             var dataTarget = { i: iTarget, j: jTarget, p: targetPieceType };

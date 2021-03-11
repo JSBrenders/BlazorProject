@@ -1,8 +1,17 @@
-﻿.board {
+﻿/*.board {
     width: 850px;
-    height: 850px;
+    height: 850px;*/
     /*display:flex;*//*
     flex-direction:column;*/
+/*}*/
+
+.board {
+    top: 0;
+    left: 0;
+    -webkit-user-select: none;
+    user-select: none;
+    line-height: 0;
+    background-size: cover;
 }
 
 #board div {
@@ -12,15 +21,11 @@
 .white {
     background-color: white;
     border: 1px solid black;
-    width: 100px;
-    height: 100px;
 }
 
 .black {
     background-color: grey;
     border: 1px solid black;
-    width: 100px;
-    height: 100px;
 }
 
 .numberContainer {
@@ -50,11 +55,16 @@
 }
 
 .pieceContainer {
+    position: absolute;
+   /* width: 12.5%;
+    height: 12.5%;*/
+    width: 100px;
+    height: 100px;
     line-height: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: left 2s, top 2s;
+    /*transition: left 1s, top 1s;*/
 }
 
 .piece {
