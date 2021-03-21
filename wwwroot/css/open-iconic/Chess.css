@@ -1,29 +1,5 @@
 ﻿
 /*Gestion du conteneur du board*/
-
-.main-board,
-.mini-board,
-.mini-game .cg-wrap {
-    position: relative;
-    display: block;
-    height: 0;
-    padding-bottom: 125%;
-    width: 100%;
-}
-
-    cg-board,
-    .main-board .cg-wrap {
-        position: absolute;
-        width: 100%;
-        height: 100%;       
-    }
-
-.cg-wrap,
-.mini-game .cg-wrap {
-    display: table;
-}
-
-
 cg-board {
     position: absolute;
     width: 100%;
