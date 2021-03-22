@@ -257,6 +257,9 @@ class ChessGame {
 
         this.hasMoved = [];
 
+        //liste des targets actuelles de toutes les pièces (pour gérer le castle notamment)
+        this.listTargetedSquare = [];
+
         this.relPos;
         //ajout des pièces noires
         this.initialState.push([this.BR, this.BN, this.BB, this.BQ, this.BK, this.BB, this.BN, this.BR])
@@ -330,7 +333,67 @@ class ChessGame {
                 //gestion du castle
                 //utilisation de la liste 'hasMoved' de l'objet ChessGame pour savoir si on a bougé telle ou telle piece
                 if (!this.hasMoved.containsHTML(this.selectedPiece)) {
-                    console.log("Ce roi n'a pas encore joué");
+
+                    var listPos = [0, 7]
+
+                    for (var x = 0; x < 2; x++) {
+                        for (var y = 0; y < 2; y++) {
+
+                            var posTour = [listPos[x] * this.step, listPos[y] * this.step];
+
+                            var tour = this.getElsAt(posTour, 'piece');
+
+                            if (tour.length == 0) {
+                                continue;
+                            }
+
+                            if (!this.hasMoved.containsHTML(tour[0])) {
+                                //ligne : listPos[x] colonne : listPos[y]
+                                switch (listPos[y]) {
+                                    case 7:
+                                        if (currentState[data.i][5] == 0 && currentState[data.i][6] == 0) {
+
+                                            var targeted = false;
+
+                                            for (var k = 0; k < this.listTargetedSquare.length; k++) {
+   
+                                                if (Array.isArray(this.listTargetedSquare[k])) {
+                                                    if (this.listTargetedSquare[k].contains([i, 5]) || this.listTargetedSquare[k].contains([i, 6])) {
+                                                        targeted = true;
+                                                    }
+                                                }
+                                            }
+
+                                            if (!targeted) {
+                                                freeTiles.push([data.i,6])
+                                                freeTiles.push([data.i,7])
+                                            }
+                                        }
+                                        break;
+                                    case 0:
+                                        if (currentState[data.i][1] == 0 && currentState[data.i][2] == 0 && currentState[data.i][3] == 0) {
+
+                                            var targeted = false;
+
+                                            for (var k = 0; k < this.listTargetedSquare.length; k++) {
+
+                                                if (Array.isArray(this.listTargetedSquare[k])) {
+                                                    if (this.listTargetedSquare[k].contains([i, 1]) || this.listTargetedSquare[k].contains([i, 2]) || this.listTargetedSquare[k].contains([i, 3])) {
+                                                        targeted = true;
+                                                    }
+                                                }
+                                            }
+
+                                            if (!targeted) {
+                                                freeTiles.push([data.i, 2])
+                                                freeTiles.push([data.i, 0])
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 break;
@@ -397,7 +460,7 @@ class ChessGame {
 
                     }
                 }
-                
+
                 break;
             //tour blanche et tour noir
             case 3:
@@ -425,6 +488,7 @@ class ChessGame {
                 var directionHorizontal = [1, -1];
                 for (var t = 0; t < 2; t++) {
                     for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
+
                         if (currentState[i][j + y] == 0) {
                             freeTiles.push([i, j + y]);
                         }
@@ -438,7 +502,7 @@ class ChessGame {
                         }
                     }
                 }
-                
+
                 break;
             //fou blanc et fou noir
             case 4:
@@ -465,7 +529,7 @@ class ChessGame {
 
                     }
                 }
-                
+
                 break;
             //cavalier blanc et cavalier noir
             case 5:
@@ -493,7 +557,7 @@ class ChessGame {
                         }
                     }
                 }
-                
+
                 break;
             //pion blanc et pion noir
             case 6:
@@ -539,7 +603,7 @@ class ChessGame {
                         }
                     }
                 }
-                
+
                 break;
             default:
                 break;
@@ -605,6 +669,7 @@ class ChessGame {
         return false;
     }
 
+
     //p représente la couleur du joueur dont on vérifie s'il est mis en échec et mat (entre 1 et 6 blanc, entre 7 et 12 noir)
     checkMate(p) {
 
@@ -616,7 +681,7 @@ class ChessGame {
                 var data = { i: i, j: j, p: piece };
 
                 //if (this.getColor(p) == this.getColor(piece)) {
-                if (this.isSameColorParType(p,piece)) {
+                if (this.isSameColorParType(p, piece)) {
 
                     var availablePositions = this.checkPossibleTiles(data);
 
@@ -874,8 +939,27 @@ class ChessGame {
         }
     }
 
-    //supprime les square hover
+    listTargets(isWhiteTurn) {
+        var chessGame = this;
+        this.listTargetedSquare = [];
+        $('piece').each(function () {
+            if (this.id.includes(isWhiteTurn ? 'white' : 'black')) {
 
+                var pos = chessGame.getPosFromElement(this);
+                var type = chessGame.getPieceTypeFromEl(this);
+                var data = { i: pos[0] / chessGame.step, j: pos[1] / chessGame.step, p: type }
+
+                var listTargets = chessGame.checkPossibleTiles(data);
+
+                chessGame.listTargetedSquare.push(listTargets);
+
+                //console.log(this.id + ' : ');
+                //console.log(listTargets);
+            }
+        });
+    }
+
+    //supprime les square hover
     resetHover(allHover, pos = null) {
 
         var chessGame = this;
@@ -949,7 +1033,7 @@ class ChessGame {
     }
 
     isInListAvailablePos(pos) {
-        
+
         var foundSquare = null;
 
         for (var i = 0; i < this.listTileAvailable.length; i++) {
@@ -1126,8 +1210,8 @@ class ChessGame {
         $('.selected').remove();
 
         var InewSquare = newSquare[1] / this.step;
-        var JnewSquare = newSquare[0] / this.step ;
-        var posArrivee = [InewSquare , JnewSquare];
+        var JnewSquare = newSquare[0] / this.step;
+        var posArrivee = [InewSquare, JnewSquare];
 
         var x = posDepart[0];
         var y = posDepart[1];
@@ -1172,7 +1256,7 @@ class ChessGame {
 
         this.crossOrigin = 'anonymous';
         this.audio.play();
-        console.log(this.audio)
+
         this.VisualizeState(this.currentState, this.currentTurn, this.toWhite);
 
 
@@ -1180,6 +1264,10 @@ class ChessGame {
         if ([1, 7, 3, 9].includes(this.getPieceTypeFromEl(this.selectedPiece))) {
             this.hasMoved.push(this.selectedPiece);
         }
+
+        console.log(!this.toWhite ? 'white targetting':'black targetting');
+        this.listTargets(!this.toWhite);
+
     }
 
     LaunchPreview(data, availablePositions) {
@@ -1203,7 +1291,7 @@ class ChessGame {
 
             var pos = [availablePositions[i][0] * this.step, availablePositions[i][1] * this.step];
             this.listTileAvailable.push(pos)
-            
+
 
             this.AfficherPreview(data, dataTarget, targetElement);
 
@@ -1212,17 +1300,17 @@ class ChessGame {
 
     AfficherPreview(data, dataTarget, targetElement) {
 
-            var posTarget = [dataTarget.j * this.step, dataTarget.i * this.step]
+        var posTarget = [dataTarget.j * this.step, dataTarget.i * this.step]
 
-            if (dataTarget.p == 0) {
-                //case vide
-                var square = this.createSquareAtPos(posTarget, 'square', 'move-dest')
+        if (dataTarget.p == 0) {
+            //case vide
+            var square = this.createSquareAtPos(posTarget, 'square', 'move-dest')
 
-            } else {
-                //piece adverse
-                var square = this.createSquareAtPos(posTarget, 'square', 'move-destTarget');
+        } else {
+            //piece adverse
+            var square = this.createSquareAtPos(posTarget, 'square', 'move-destTarget');
 
-            }
+        }
     }
 
     //Visualiser un etat
