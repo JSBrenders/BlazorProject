@@ -3,8 +3,6 @@ function LoadChessBoard() {
 
     $('#replay').hide();
 
-
-
     var firstContainer = document.getElementById('board');
 
     board.innerHTML = '';
@@ -41,7 +39,19 @@ function LoadChessBoard() {
         ["white queen", "&#9813", 2],
         ["white king", "&#9812", 1],
         ["white pawn", "&#9817", 6]
-    ]
+    ];
+
+    chessGame.listProm = [
+        ["&#9813", 'Queen'],
+        ["&#9816", 'Knight'],
+        ["&#9814", 'Rook'],
+        ["&#9815", 'Bishop'],
+        ["&#9819",'Queen'],
+        ["&#9822", 'Knight'],
+        ["&#9820", 'Rook'],
+        ["&#9821",'Bishop'],
+
+    ];
 
     //this.WR = ["R","white rook",3];
     //this.WN = ["N","white night",5];
@@ -1216,7 +1226,7 @@ class ChessGame {
 
         var chessGame = this;
 
-        var target = this.getElsAt([newSquare[0], newSquare[1]], 'piece').filter(function (el) {
+        var target = this.getElsAt(newSquare, 'piece').filter(function (el) {
 
             var found = !chessGame.isSameColor(chessGame.selectedPiece, this);
 
@@ -1231,13 +1241,7 @@ class ChessGame {
             console.log('Warning : Will be in check');
             return;
         }
-
-        //on vérifie si on a pris une piece, si oui on la supprimer
-        if (target.length == 1) {
-
-            $(target[0]).remove()
-
-        }
+       
 
         //Code de déplacement
         //castle
@@ -1247,10 +1251,7 @@ class ChessGame {
             if (dataArrivee.j - dataDepart.j > 0) {
                 //castle king side
                 var tour = this.getElsAt([7 * this.step, dataDepart.i * this.step]);
-                console.log(dataDepart);
-                console.log(dataArrivee);
 
-                console.log(tour);
                 $(tour[0]).css('transition-duration', '0.4s');
 
                 $(tour[0]).css('transform', 'translate( ' + 5 * this.step + 'px, ' + dataDepart.i * this.step + 'px)')
@@ -1263,13 +1264,66 @@ class ChessGame {
 
                 $(tour[0]).css('transition-duration', '0.4s');
 
-                $(tour[0]).css('transform', 'translate( ' + (3 * this.step) + 'px, ' + (dataDepart.i * this.step) + 'px)')
+                $(tour[0]).css('transform', 'translate( ' + (3 * this.step) + 'px, ' + (dataDepart.i * this.step) + 'px)');
                 $(this.selectedPiece).css('transform', 'translate( ' + 2 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
 
             }
+        } else if (this.selectedPiece.id.includes('pawn') && (dataArrivee.j != dataDepart.j) && this.getElsAt(newSquare, 'piece').length == 0) {
+            //En-passant
+
+            $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
+            //on supprime le pion pris enpassant
+            var targetEnPassant = this.getElsAt([newSquare[0], newSquare[1] + this.step * (this.toWhite?1:-1)], 'piece');
+            $(targetEnPassant[0]).remove();
+
+        } else if (this.selectedPiece.id.includes('pawn') && (this.toWhite && dataArrivee.i == 0 || this.toBlack && dataArrivee.i == 7)) {
+            //promotion
+            console.log('promotion')
+            $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
+            //on vérifie si on a pris une piece, si oui on la supprimer
+            if (target.length == 1) {
+
+                $(target[0]).remove();
+
+            }
+
+            var promotion = document.createElement('div');
+            promotion.id = 'promotion-choice';
+            promotion.classList.add('top');
+
+            for (var t = 0; t < 4; t++) {
+                var pieceProm = document.createElement('squarePromotion');
+                pieceProm.style.top = t * 12.5 + '%';
+                pieceProm.style.left = (87.5 - (12.5 * (7-dataArrivee.j))) + '%';
+
+                var piece = document.createElement('piecePromotion');
+                piece.innerHTML = this.listProm[t][0];
+                piece.classList.add(this.listProm[t][1])
+                pieceProm.appendChild(piece)
+                promotion.appendChild(pieceProm);
+            }
+
+            $('div.main-board').append(promotion);
+
+            $('squarePromotion').click(function (event) {
+                console.log('Promoted to ' + event.target.className);
+                console.log($(event.target))
+                //chessGame.selectedPiece.innerHTML = $('event.target').find('piecePromotion').html();
+                chessGame.selectedPiece.innerHTML = $(event.target).html();
+                chessGame.id = 'white queen 1';
+                $('#promotion-choice').remove();
+                chessGame.playMove2(newSquare);
+            });
+
         } else {
 
             $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
+            //on vérifie si on a pris une piece, si oui on la supprimer
+            if (target.length == 1) {
+
+                $(target[0]).remove();
+
+            }
 
         }
 
