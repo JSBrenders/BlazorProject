@@ -97,7 +97,11 @@ function LoadChessBoard() {
             var posY = i * step;
             var posX = j * step;
             piece.style.transform = 'translate( ' + posX + 'px, ' + posY + 'px)';
-            piece.id = chessGame.listPiece[indexPiece][0];
+            if (chessGame.listPiece[indexPiece][0].includes('pawn')) {
+                piece.id = chessGame.listPiece[indexPiece][0] + ' ' + String.fromCharCode(65 + j);
+            }else {
+                piece.id = chessGame.listPiece[indexPiece][0];
+            }
             piece.innerHTML = chessGame.listPiece[indexPiece][1];
             cgBoard.appendChild(piece);
 
@@ -256,6 +260,7 @@ class ChessGame {
         this.audio = new Audio('FX/ChessMove.mp3');
 
         this.hasMoved = [];
+        this.pawnJustAdvancedOfTwo;
 
         //liste des targets actuelles de toutes les pièces (pour gérer le castle notamment)
         this.listTargetedSquare = [];
@@ -604,6 +609,31 @@ class ChessGame {
                     }
                 }
 
+                //Gestion en-passant
+                var sides = [1, -1];
+                if ((this.isWhiteParPiece(data.p) && i == 3) || (this.isBlackParPiece(data.p) && i == 4)) {
+                    for (k = 0; k < 2; k++) {
+
+                        if (j + sides[k] < 8 && j + sides[k] >= 0) {                         
+
+                            if (currentState[i][j + sides[k]] == 6 || currentState[i][j + sides[k]] == 12 ) {
+
+                                var pos = [(j + sides[k]) * this.step, i * this.step]
+
+                                var pawn = this.getElsAt(pos, 'piece');
+
+                                if (pawn.length > 0 && this.pawnJustAdvancedOfTwo != null) {
+
+                                    if (pawn[0].id == this.pawnJustAdvancedOfTwo.id) {
+
+                                        freeTiles.push([i + (this.isWhiteParPiece(data.p) ? -1:1), j + sides[k]])
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 break;
             default:
                 break;
@@ -778,9 +808,13 @@ class ChessGame {
 
             var ghostSquare = this.createSquareAtPos(pos, 'square', 'selected');
             $(ghostSquare).html(this.selectedPiece.innerHTML);
+
+            //On enleve la classe selected piece de la piece précédente
+            $('.selectedPiece').removeClass('selectedPiece')
+
             $(this.selectedPiece).addClass('selectedPiece');
 
-
+            $(chessGame.selectedPiece).css('transition-duration', '');
             var step = this.step;
 
             //Gestion mousemove
@@ -921,7 +955,7 @@ class ChessGame {
 
     getPieceTypeFromEl(el) {
         for (var i = 0; i < this.listPiece.length; i++) {
-            if (this.listPiece[i][0] == el.id) {
+            if (el.id.includes(this.listPiece[i][0])) {
                 return this.listPiece[i][2];
             }
         }
@@ -1171,6 +1205,8 @@ class ChessGame {
 
     playMove2(newSquare) {
 
+        this.pawnJustAdvancedOfTwo = null;
+
         $('.check').remove();
 
         var posDepart = this.initialSelectedPiecePos;
@@ -1190,7 +1226,7 @@ class ChessGame {
 
         var dataArrivee = { i: newSquare[1] / this.step, j: newSquare[0] / this.step, p: target.length > 0 ? this.getPieceTypeFromEl(target[0]) : 0 };
 
-        //on vérifie tout d'abord que l'on ne va pas se mettre en échec (fonction willBeInCheck) ---> ATTENTION DONNEES INVERSEES POUR L'ARRIVEE
+        //on vérifie tout d'abord que l'on ne va pas se mettre en échec (fonction willBeInCheck)
         if (this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
             console.log('Warning : Will be in check');
             return;
@@ -1203,8 +1239,45 @@ class ChessGame {
 
         }
 
+        //Code de déplacement
+        //castle
+        if (this.selectedPiece.id.includes('king') && (Math.abs(dataDepart.j - dataArrivee.j) > 1)) {
+            //Si on passe ici c'est qu'on a cliqué sur une case castle après avoir sélectionné le roi
 
-        $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
+            if (dataArrivee.j - dataDepart.j > 0) {
+                //castle king side
+                var tour = this.getElsAt([7 * this.step, dataDepart.i * this.step]);
+                console.log(dataDepart);
+                console.log(dataArrivee);
+
+                console.log(tour);
+                $(tour[0]).css('transition-duration', '0.4s');
+
+                $(tour[0]).css('transform', 'translate( ' + 5 * this.step + 'px, ' + dataDepart.i * this.step + 'px)')
+                $(this.selectedPiece).css('transform', 'translate( ' + 6 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
+
+
+            } else {
+                //castle queen side
+                var tour = this.getElsAt([0, dataDepart.i * this.step]);
+
+                $(tour[0]).css('transition-duration', '0.4s');
+
+                $(tour[0]).css('transform', 'translate( ' + (3 * this.step) + 'px, ' + (dataDepart.i * this.step) + 'px)')
+                $(this.selectedPiece).css('transform', 'translate( ' + 2 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
+
+            }
+        } else {
+
+            $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
+
+        }
+
+        if (this.selectedPiece.id.includes('pawn') && Math.abs(dataArrivee.i - dataDepart.i) > 1) {
+            //On vient de jouer un pion depuis sa ligne de départ de 2 cases 
+            this.pawnJustAdvancedOfTwo = this.selectedPiece;
+        }
+
         this.resetPiece(false);
         this.resetPreview();
         $('.selected').remove();
@@ -1236,11 +1309,15 @@ class ChessGame {
 
         $('#trait').html(this.toWhite ? 'Trait aux blancs' : 'Trait aux noirs');
 
+        this.listTargets(!this.toWhite);
+
+        //Gestion check
+        var check = false;
         listNewTargets.forEach(function (element) {
             var i = element[0];
             var j = element[1];
             if (chessGameL.currentState[i][j] == 1 || chessGameL.currentState[i][j] == 7) {
-
+                check = true;
                 var pos = [j * chessGame.step, i * chessGame.step]
                 var roiElement = chessGameL.getElsAt(pos, 'piece');
 
@@ -1254,6 +1331,28 @@ class ChessGame {
             }
         });
 
+        //Si pas de check avec la piece bougée on regarde quand même les discovered check
+        if (!check) {
+
+            for (var k = 0; k < this.listTargetedSquare.length; k++) {
+
+                var listPos = this.listTargetedSquare[k];
+
+                for (var x = 0; x < listPos.length; x++) {
+
+                    var pos = [listPos[x][1] * this.step, listPos[x][0] * this.step];
+                    var target = this.getElsAt(pos, 'piece');
+                    if (target.length > 0) {
+
+                        if (target[0].id == (this.toWhite ? 'white king' : 'black king')) {
+                            check = true;
+                            var checkSquare = this.createSquareAtPos(pos, 'square', 'check');
+                        }
+                    }
+                }
+            }
+        }
+
         this.crossOrigin = 'anonymous';
         this.audio.play();
 
@@ -1265,9 +1364,8 @@ class ChessGame {
             this.hasMoved.push(this.selectedPiece);
         }
 
-        console.log(!this.toWhite ? 'white targetting':'black targetting');
-        this.listTargets(!this.toWhite);
-
+        //On vide la liste des positions available
+        this.listTileAvailable = [];
     }
 
     LaunchPreview(data, availablePositions) {
