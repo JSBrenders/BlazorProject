@@ -42,14 +42,14 @@ function LoadChessBoard() {
     ];
 
     chessGame.listProm = [
-        ["&#9813", 'Queen'],
-        ["&#9816", 'Knight'],
-        ["&#9814", 'Rook'],
-        ["&#9815", 'Bishop'],
-        ["&#9819",'Queen'],
-        ["&#9822", 'Knight'],
-        ["&#9820", 'Rook'],
-        ["&#9821",'Bishop'],
+        ["&#9813", 'white queen'],
+        ["&#9816", 'white knight'],
+        ["&#9814", 'white rook'],
+        ["&#9815", 'white bishop'],
+        ["&#9819",'black queen'],
+        ["&#9822", 'black knight'],
+        ["&#9820", 'black rook'],
+        ["&#9821",'black bishop'],
 
     ];
 
@@ -221,6 +221,8 @@ class ChessGame {
 
         this.listePositions = [this.initialState];
 
+        this.listMoves = [];
+
         this.listPiece;
         //this.WR = ["R","white rook",3];
         //this.WN = ["N","white night",5];
@@ -302,7 +304,7 @@ class ChessGame {
         this.initialState.push([this.WR, this.WN, this.WB, this.WQ, this.WK, this.WB, this.WN, this.WR])
 
         this.currentState = this.initialState;
-        this.currentTurn = 0;
+        this.currentTurn = 1;
 
 
         this.VisualizeState(this.currentState, this.currentTurn, this.toWhite, false);
@@ -789,7 +791,7 @@ class ChessGame {
     }
 
 
-    SelectPiece(event, ui) {
+    SelectPiece(event, pos = null) {
 
         var chessGame = this;
 
@@ -799,9 +801,12 @@ class ChessGame {
 
         var board = this.board;
 
-        var relX = event.pageX - board.offset().left;
-        var relY = event.pageY - board.offset().top;
-        pos = [relX, relY];
+        if (event != null && pos == null) {
+            var relX = event.pageX - board.offset().left;
+            var relY = event.pageY - board.offset().top;
+            pos = [relX, relY];
+        }
+
 
         var elements = this.getElsAt(pos);
 
@@ -830,8 +835,8 @@ class ChessGame {
             //Gestion mousemove
             $('cg-board').mousemove(function (event) {
 
-                var relX = event.pageX - $(this).offset().left;/* - (step / 2);*/
-                var relY = event.pageY - $(this).offset().top; /*- (step / 2);*/
+                var relX = event.pageX - $(this).offset().left;
+                var relY = event.pageY - $(this).offset().top;
                 pos = [relX, relY];
                 chessGame.relPos = pos;
 
@@ -855,11 +860,7 @@ class ChessGame {
 
             var availablePositions = this.checkPossibleTiles(data)
 
-            //for (var i = 0; i < availablePositions.length; i++) {
 
-            //    var pos = [availablePositions[i][0] * this.step, availablePositions[i][1] * this.step];
-            //    this.listTileAvailable.push(pos)
-            //}
 
             this.LaunchPreview(data, availablePositions);
 
@@ -1103,115 +1104,6 @@ class ChessGame {
         return $('.move-dest').length > 0;
     }
 
-    PlayMove(dataDepart, dataArrivee) {
-
-        resetIndications();
-
-
-        var posDepart = [dataDepart.i, dataDepart.j];
-        var posArrivee = [dataArrivee.i, dataArrivee.j];
-
-        //if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.isInCheck() && !this.willBeInCheck()) {
-        if (this.checkPossibleTiles(dataDepart).contains(posArrivee) && this.isColorTurn(dataDepart.p) && !this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
-
-            var elementDepart = $(this.getSquareId(dataDepart.i, dataDepart.j));
-            var elementArrivee = $(this.getSquareId(dataArrivee.i, dataArrivee.j));
-
-
-            //Gestion de la transition
-            //on calcul la distance entre le point de départ et le point d'arrivée
-            //on créer une classe temporaire de déplacement css et on l'ajoute à la case
-
-            var positionDepart = elementDepart.position();
-            var positionArrivee = elementArrivee.position();
-
-
-            var parcouruLeft = positionArrivee.left - positionDepart.left;
-            var parcouruTop = positionArrivee.top - positionDepart.top;
-
-
-            var style = document.createElement('style');
-            style.type = 'text/css';
-            style.innerHTML = '.cssClass { left: ' + positionArrivee.left + 'px; top : ' + positionArrivee.top + 'px }';
-            document.getElementsByTagName('head')[0].appendChild(style);
-
-            elementDepart.addClass('cssClass');
-            //document.getElementById('someElementId').className = 'cssClass';
-
-
-            elementArrivee.html(elementDepart.html());
-            elementDepart.html('');
-
-            this.currentState[posDepart[0]][posDepart[1]] = 0;
-            this.currentState[posArrivee[0]][posArrivee[1]] = dataDepart.p;
-
-            this.listePositions.push(this.currentState);
-            this.currentTurn++;
-            this.toWhite = !this.toWhite;
-            this.toBlack = !this.toBlack;
-            this.VisualizeState(this.currentState, this.currentTurn, this.toWhite);
-
-            //on enleve le check si il y a check
-            $('.check').removeClass('check');
-
-            //update front
-            //update des datas des 2 tiles concernées
-            dataArrivee.p = dataDepart.p;
-            dataDepart.p = 0;
-
-            var chessGame = this;
-
-            //on disable le drag and drop pour la couleur dont ce n'est pas le tour
-            $(".piece").each(function (index, pieceElement) {
-                if ($(pieceElement).data('position')) {
-
-                    var piece = $(pieceElement).data('position').p
-
-                    //si c'est au tour des blancs
-                    if (chessGame.toWhite) {
-                        //si la piece traitée est noire on disable sinon on enable
-                        if (chessGame.isBlack(piece)) {
-                            $(pieceElement).draggable('disable');
-                        } else if (chessGame.isWhite(piece)) {
-                            $(pieceElement).draggable({
-                                helper: 'clone'
-                            });
-                            $(pieceElement).draggable('enable');
-                        }
-                    } else {
-                        //sinon c'est le tour des noirs et on inverse
-                        if (chessGame.isWhite(piece)) {
-                            $(pieceElement).draggable('disable');
-                        } else {
-                            $(pieceElement).draggable({
-                                helper: 'clone'
-                            });
-                            $(pieceElement).draggable('enable');
-                        }
-                    }
-                }
-            });
-
-            this.EmptyPreviewList();
-
-            //on vérifie si la pièce dans la position d'arrivée met en échec le roi adverse
-            var chessGameL = this;
-            var listNewTargets = this.checkPossibleTiles(dataArrivee);
-            listNewTargets.forEach(function (element) {
-                var i = element[0];
-                var j = element[1];
-                if (chessGameL.currentState[i][j] == 1 || chessGameL.currentState[i][j] == 7) {
-                    var roiElement = chessGameL.posToElement([i, j]);
-                    roiElement.addClass('check');
-                    //on vérifie si on a une situation de checkMate
-                    if (chessGameL.checkMate(chessGameL.toWhite ? 1 : 7)) {
-                        //Si checkMate on passe en parametre le vainqueur
-                        chessGameL.endGame(chessGameL.toWhite ? 7 : 1);
-                    }
-                }
-            });
-        }
-    }
 
     playMove2(newSquare) {
 
@@ -1242,11 +1134,13 @@ class ChessGame {
             return;
         }
        
-
+        var castle = false;
         //Code de déplacement
         //castle
         if (this.selectedPiece.id.includes('king') && (Math.abs(dataDepart.j - dataArrivee.j) > 1)) {
             //Si on passe ici c'est qu'on a cliqué sur une case castle après avoir sélectionné le roi
+
+            castle = true;
 
             if (dataArrivee.j - dataDepart.j > 0) {
                 //castle king side
@@ -1257,6 +1151,10 @@ class ChessGame {
                 $(tour[0]).css('transform', 'translate( ' + 5 * this.step + 'px, ' + dataDepart.i * this.step + 'px)')
                 $(this.selectedPiece).css('transform', 'translate( ' + 6 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
 
+                this.currentState[dataDepart.i][5] = this.toWhite ? 3 : 9;
+                this.currentState[dataDepart.i][6] = this.toWhite ? 1 : 7;
+                this.currentState[dataDepart.i][4] = 0;
+                this.currentState[dataDepart.i][7] = 0;
 
             } else {
                 //castle queen side
@@ -1267,13 +1165,21 @@ class ChessGame {
                 $(tour[0]).css('transform', 'translate( ' + (3 * this.step) + 'px, ' + (dataDepart.i * this.step) + 'px)');
                 $(this.selectedPiece).css('transform', 'translate( ' + 2 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
 
+                this.currentState[dataDepart.i][5] = this.toWhite ? 3 : 9;
+                this.currentState[dataDepart.i][6] = this.toWhite ? 1 : 7;
+                this.currentState[dataDepart.i][4] = 0;
+                this.currentState[dataDepart.i][7] = 0;
+
             }
         } else if (this.selectedPiece.id.includes('pawn') && (dataArrivee.j != dataDepart.j) && this.getElsAt(newSquare, 'piece').length == 0) {
             //En-passant
 
             $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
             //on supprime le pion pris enpassant
-            var targetEnPassant = this.getElsAt([newSquare[0], newSquare[1] + this.step * (this.toWhite?1:-1)], 'piece');
+            var targetEnPassant = this.getElsAt([newSquare[0], newSquare[1] + this.step * (this.toWhite ? 1 : -1)], 'piece');
+
+            this.currentState[dataDepart.i][dataArrivee.j] = 0;
+
             $(targetEnPassant[0]).remove();
 
         } else if (this.selectedPiece.id.includes('pawn') && (this.toWhite && dataArrivee.i == 0 || this.toBlack && dataArrivee.i == 7)) {
@@ -1292,28 +1198,47 @@ class ChessGame {
             promotion.classList.add('top');
 
             for (var t = 0; t < 4; t++) {
-                var pieceProm = document.createElement('squarePromotion');
-                pieceProm.style.top = t * 12.5 + '%';
-                pieceProm.style.left = (87.5 - (12.5 * (7-dataArrivee.j))) + '%';
 
-                var piece = document.createElement('piecePromotion');
-                piece.innerHTML = this.listProm[t][0];
-                piece.classList.add(this.listProm[t][1])
-                pieceProm.appendChild(piece)
-                promotion.appendChild(pieceProm);
+                if (dataArrivee.i == 0) {
+                    //Promotion piece blanche
+                    var pieceProm = document.createElement('squarePromotion');
+                    pieceProm.style.top = t * 12.5 + '%';
+                    pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
+
+                    var piece = document.createElement('piecePromotion');
+                    piece.innerHTML = this.listProm[t][0];
+                    piece.classList.add(this.listProm[t][1])
+                    pieceProm.appendChild(piece)
+                    promotion.appendChild(pieceProm);
+                } else if (dataArrivee.i == 7) {
+                    //Promotion piece noire
+                    var pieceProm = document.createElement('squarePromotion');
+                    pieceProm.style.top = 87.5-(t * 12.5) + '%';
+                    pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
+
+                    var piece = document.createElement('piecePromotion');
+                    piece.innerHTML = this.listProm[t+4][0];
+                    piece.id = (this.listProm[t+4][1])
+                    pieceProm.appendChild(piece)
+                    promotion.appendChild(pieceProm);
+                }
             }
 
             $('div.main-board').append(promotion);
 
             $('squarePromotion').click(function (event) {
                 console.log('Promoted to ' + event.target.className);
-                console.log($(event.target))
                 //chessGame.selectedPiece.innerHTML = $('event.target').find('piecePromotion').html();
                 chessGame.selectedPiece.innerHTML = $(event.target).html();
-                chessGame.id = 'white queen 1';
-                $('#promotion-choice').remove();
+                chessGame.selectedPiece.id = event.target.id;
+
+                console.log(chessGame.initialSelectedPiecePos)
+                this.selectedPiece = chessGame.getElsAt(chessGame.initialSelectedPiecePos)[0];
+                console.log(chessGame.selectedPiece);
                 chessGame.playMove2(newSquare);
+                $('#promotion-choice').remove();
             });
+            return;
 
         } else {
 
@@ -1343,14 +1268,58 @@ class ChessGame {
         var x = posDepart[0];
         var y = posDepart[1];
 
-        this.currentState[x][y] = 0;
 
-        var typePiece = this.getPieceTypeFromEl(this.selectedPiece)
-        this.currentState[posArrivee[0]][posArrivee[1]] = typePiece;
+        if (!castle) {
+            this.currentState[x][y] = 0;
+            var typePiece = this.getPieceTypeFromEl(this.selectedPiece)
+            this.currentState[posArrivee[0]][posArrivee[1]] = typePiece;
+        }
 
         this.listePositions.push(this.currentState);
 
-        this.currentTurn++;
+
+        if (this.toWhite) {
+
+            var rowRecap = document.createElement('div');
+            rowRecap.classList.add('rowRecap');
+            rowRecap.style.top = ((this.currentTurn == 1 ? 0 : (this.currentTurn - 1)) * 5) + '%'
+            rowRecap.id = 'row' + this.currentTurn;
+            $('.recapContainer').append(rowRecap);
+
+            var index = document.createElement('div')
+            index.classList.add('index');
+            index.innerHTML = this.currentTurn
+            $(rowRecap).append(index);
+           
+            index.style.left = "0%"
+        }
+
+        if (target.length == 1) {
+
+            //recap si capture
+            var moveElement = document.createElement('div');
+            moveElement.classList.add(this.toWhite ? 'whiteMove' : 'blackMove');
+            var move = (this.selectedPiece.id.includes('pawn') ? String.fromCharCode(97 + dataDepart.j) : $(this.selectedPiece).html()) + 'x' + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
+            moveElement.innerHTML = move;
+            console.log(rowRecap);
+            $('#row' + this.currentTurn).append(moveElement);
+
+        } else {
+            var moveElement = document.createElement('div');
+            moveElement.classList.add(this.toWhite ? 'whiteMove' : 'blackMove');
+            var move = (this.selectedPiece.id.includes('pawn') ? '' : $(this.selectedPiece).html()) + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
+            moveElement.innerHTML = move;
+            $('#row' + this.currentTurn).append(moveElement);
+        }
+
+        var element = document.getElementsByClassName('recapContainer')[0]
+        element.scrollTop = element.scrollHeight;
+
+        this.listMoves.push(move);
+
+        if (this.toBlack) {
+            this.currentTurn++;
+        }
 
         this.isWhiteTurn = !this.isWhiteTurn;
         this.toBlack = !this.toBlack;
@@ -1367,6 +1336,7 @@ class ChessGame {
 
         //Gestion check
         var check = false;
+        var end = false;
         listNewTargets.forEach(function (element) {
             var i = element[0];
             var j = element[1];
@@ -1381,9 +1351,14 @@ class ChessGame {
                 if (chessGameL.checkMate(chessGameL.toWhite ? 1 : 7)) {
                     //Si checkMate on passe en parametre le vainqueur
                     chessGameL.endGame(chessGameL.toWhite ? 7 : 1);
+                    end = true;
                 }
             }
         });
+
+        if (end) {
+            return;
+        }
 
         //Si pas de check avec la piece bougée on regarde quand même les discovered check
         if (!check) {
@@ -1469,7 +1444,7 @@ class ChessGame {
     VisualizeState(State, index = null, white = null) {
 
         if (index) {
-            console.log("Position N°" + (index + 1) + " : " + (white ? "Trait aux blancs" : "Trait aux noirs"));
+            console.log("Position N°" + (index) + " : " + (white ? "Trait aux blancs" : "Trait aux noirs"));
         }
 
         if (($('#detail').is(':checked')) || index == null) {
