@@ -137,6 +137,21 @@ squarePromotion {
         opacity: 0.2;
     }
 
+
+.oldDest {
+    background-color: #9abd4d;
+    pointer-events: auto;
+    opacity: 1;
+    z-index: 1;
+}
+
+.newDest {
+    background-color: #9abd4d;
+    pointer-events: auto;
+    opacity: 1;
+    z-index: 1;
+}
+
 cg-container {
     position: absolute;
     width: 800%;
