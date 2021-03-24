@@ -1207,7 +1207,7 @@ class ChessGame {
 
                     var piece = document.createElement('piecePromotion');
                     piece.innerHTML = this.listProm[t][0];
-                    piece.classList.add(this.listProm[t][1])
+                    piece.id = (this.listProm[t][1])
                     pieceProm.appendChild(piece)
                     promotion.appendChild(pieceProm);
                 } else if (dataArrivee.i == 7) {

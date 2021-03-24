@@ -1,45 +1,47 @@
 ﻿@page "/Chess"
 
-@inject IJSRuntime jsruntime
-<div class="d-flex flex-row">
+    <Title value="Chess"></Title>
 
-<div class="d-flex flex-column">
-    <div class="d-flex flex-row align-items-baseline">
-        <input id="detail" class="ml-5" type="checkbox" />
-        <p class="ml-2">Trame détaillée</p>
-    </div>
-    <div class="d-flex flex-row justify-content-center">
+    @inject IJSRuntime jsruntime
+    <div class="d-flex flex-row">
 
-        <div style="width:35vw">
-            <div class="main-board">
-                <div class="disable-select cg-wrap" id="board"></div>
+        <div class="d-flex flex-column">
+            <div class="d-flex flex-row align-items-baseline">
+                <input id="detail" class="ml-5" type="checkbox" />
+                <p class="ml-2">Trame détaillée</p>
+            </div>
+            <div class="d-flex flex-row justify-content-center">
+
+                <div style="width:35vw">
+                    <div class="main-board">
+                        <div class="disable-select cg-wrap" id="board"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-center" style="width:-webkit-fill-available">
+            <div class="d-flex flex-column align-items-center">
+                <h2 id="trait">Trait aux blancs</h2>
+                <div class="recapContainer">
+                </div>
+                <button class="btn btn-primary mt-3" id="giveUp" style="width:fit-content">Abandonner</button>
+                <button class="btn btn-primary mt-3" id="replay" style="width:fit-content">Rejouer</button>
+
+
+
             </div>
         </div>
 
     </div>
-</div>
-
-<div class="d-flex align-items-center justify-content-center" style="width:-webkit-fill-available">
-<div class="d-flex flex-column align-items-center">
-    <h2 id="trait">Trait aux blancs</h2>
-    <div class="recapContainer" >
-    </div>
-    <button class="btn btn-primary mt-3" id="giveUp" style="width:fit-content">Abandonner</button>
-    <button class="btn btn-primary mt-3" id="replay" style="width:fit-content">Rejouer</button>
 
 
+    @code {
 
-</div>
-</div>
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await jsruntime.InvokeVoidAsync("LoadChessBoard");
+        }
 
-</div>
-
-
-@code {
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await jsruntime.InvokeVoidAsync("LoadChessBoard");
     }
-
-}
