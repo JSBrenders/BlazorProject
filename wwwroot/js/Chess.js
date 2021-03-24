@@ -7,6 +7,8 @@ function LoadChessBoard() {
 
     board.innerHTML = '';
 
+    $('.rowRecap').remove();
+
     //empecher la selection
     $(board).attr('unselectable', 'on');
 
