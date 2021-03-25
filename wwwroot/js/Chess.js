@@ -3,14 +3,15 @@ function LoadChessBoard() {
 
     $('#replay').hide();
 
-
-
     var board = document.getElementById("board");
-
     board.innerHTML = '';
 
     //empecher la selection
     $(board).attr('unselectable', 'on');
+
+
+
+
 
     var chessGame = new ChessGame();
 

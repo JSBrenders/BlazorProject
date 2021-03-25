@@ -1,8 +1,9 @@
 ﻿.board {
-    width: 850px;
-    height: 850px;
-    /*display:flex;*//*
-    flex-direction:column;*/
+    position: absolute;
+    width: 800%;
+    height: 800%;
+    display: block;
+    bottom: 0;
 }
 
 #board div {
