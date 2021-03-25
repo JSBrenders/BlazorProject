@@ -1,47 +1,87 @@
 ﻿@page "/Chess"
 
-    <Title value="Chess"></Title>
+@inject IJSRuntime jsruntime
 
-    @inject IJSRuntime jsruntime
-    <div class="d-flex flex-row">
+<Title value="Chess"></Title>
 
-        <div class="d-flex flex-column">
-            <div class="d-flex flex-row align-items-baseline">
-                <input id="detail" class="ml-5" type="checkbox" />
-                <p class="ml-2 ml-3">Trame détaillée</p>
-            </div>
-            <div class="d-flex flex-row justify-content-center">
+@inject IJSRuntime jsruntime
+<div class="d-flex flex-row">
 
-                <div style="width:35vw">
-                    <div class="main-board">
-                        <div class="disable-select cg-wrap" id="board"></div>
-                    </div>
-                </div>
-
-            </div>
+    <div class="d-flex flex-column">
+        <div class="d-flex flex-row align-items-baseline">
+            <input id="detail" class="ml-5" type="checkbox" />
+            <p class="ml-2 ml-3">Trame détaillée</p>
         </div>
+        <div class="d-flex flex-row justify-content-center">
 
-        <div class="d-flex align-items-center justify-content-center" style="width:-webkit-fill-available">
-            <div class="d-flex flex-column align-items-center">
-                <h2 id="trait">Trait aux blancs</h2>
-                <div class="recapContainer">
+            <div style="width:35vw">
+                <div class="main-board">
+                    <div class="disable-select cg-wrap" id="board"></div>
                 </div>
-                <button class="btn btn-primary mt-3" id="giveUp" style="width:fit-content">Abandonner</button>
-                <button class="btn btn-primary mt-3" id="replay" style="width:fit-content">Rejouer</button>
-
-
-
             </div>
-        </div>
 
+        </div>
     </div>
 
+    <div class="d-flex align-items-center justify-content-center" style="width:-webkit-fill-available">
+        <div class="d-flex flex-column align-items-center">
+            <h2 id="trait">Trait aux blancs</h2>
+            <div class="recapContainer">
+            </div>
+            <button class="btn btn-primary mt-3" id="giveUp" style="width:fit-content">Abandonner</button>
+            <button class="btn btn-primary mt-3" id="replay" style="width:fit-content">Rejouer</button>
 
-    @code {
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+
+        </div>
+    </div>
+</div>
+<button @onclick="LaunchGame" class="btn btn-danger">Lancer un partie ordinateur vs ordinateur</button>
+<button @onclick="StopGame" class="@buttonClass">@buttonLib</button>
+<button @onclick="Reset" class="btn btn-info ml-4 mr-4">Recommencer</button>
+<input type="number" @bind-value="@delay" />
+
+
+@code {
+
+    bool stop = false;
+    string buttonLib = "stop";
+    string buttonClass = "btn btn-danger ml-4";
+    int delay = 400;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
             await jsruntime.InvokeVoidAsync("LoadChessBoard");
         }
-
     }
+
+    void StopGame()
+    {
+        stop = !stop;
+        buttonLib = stop ? "Continuer" : "Stop";
+        buttonClass = stop ? "btn btn-primary ml-4" : "btn btn-danger ml-4";
+        if (!stop)
+        {
+            LaunchGame();
+        }
+    }
+
+    async Task LaunchGame()
+    {
+        //await jsruntime.InvokeVoidAsync("LoadChessBoard");
+
+        while (!await jsruntime.InvokeAsync<bool>("GameOver") && !stop)
+        {
+            dynamic data = await jsruntime.InvokeAsync<object>("getState");
+            var result = PythonApp.LaunchExternalEngine(data.ToString());
+            await jsruntime.InvokeVoidAsync("playMove", (string)result);
+            await Task.Delay(delay);
+        }
+    }
+
+    async Task Reset()
+    {
+        await jsruntime.InvokeVoidAsync("LoadChessBoard");
+    }
+}

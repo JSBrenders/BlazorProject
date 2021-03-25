@@ -1,6 +1,11 @@
 ﻿//création du plateau
+
+var currentChessGame;
+var gameOver;
 function LoadChessBoard() {
 
+    
+    gameOver = false;
 
     $('#replay').hide();
 
@@ -20,6 +25,8 @@ function LoadChessBoard() {
     cgContainer.appendChild(cgBoard);
 
     var chessGame = new ChessGame();
+
+    currentChessGame = chessGame;
 
     $('#giveUp').show();
     $('#giveUp').click(function () {
@@ -47,10 +54,10 @@ function LoadChessBoard() {
         ["&#9816", 'white knight'],
         ["&#9814", 'white rook'],
         ["&#9815", 'white bishop'],
-        ["&#9819",'black queen'],
+        ["&#9819", 'black queen'],
         ["&#9822", 'black knight'],
         ["&#9820", 'black rook'],
-        ["&#9821",'black bishop'],
+        ["&#9821", 'black bishop'],
 
     ];
 
@@ -110,7 +117,7 @@ function LoadChessBoard() {
             piece.style.transform = 'translate( ' + posX + 'px, ' + posY + 'px)';
             if (chessGame.listPiece[indexPiece][0].includes('pawn')) {
                 piece.id = chessGame.listPiece[indexPiece][0] + ' ' + String.fromCharCode(65 + j);
-            }else {
+            } else {
                 piece.id = chessGame.listPiece[indexPiece][0];
             }
             piece.innerHTML = chessGame.listPiece[indexPiece][1];
@@ -143,13 +150,12 @@ function LoadChessBoard() {
         //l'on clique ou non sur une case available en preview
         if (newSquare != null) {
             //On clique sur une case de la preview        
-            $(chessGame.selectedPiece).css('transition-duration', '0.4s');
             chessGame.playMove2(newSquare);
             chessGame.alreadyPlayed = true;
 
         } else {
             $(chessGame.selectedPiece).css('transition-duration', '');
-            chessGame.resetPreview();
+
             event.stopPropagation();
             chessGame.SelectPiece(event);
         }
@@ -326,6 +332,8 @@ class ChessGame {
     checkPossibleTiles(data, State = null) {
         //on va renvoyer une liste d'objet pos = (ligne,colonne) de cases libres ou de pièces à prendre
 
+        console.trace();
+
         //si on veut un state en particulier (State non null) 
         var currentState = State == null ? this.currentState : State;
 
@@ -383,7 +391,7 @@ class ChessGame {
                                             var targeted = false;
 
                                             for (var k = 0; k < this.listTargetedSquare.length; k++) {
-   
+
                                                 if (Array.isArray(this.listTargetedSquare[k])) {
                                                     if (this.listTargetedSquare[k].contains([i, 5]) || this.listTargetedSquare[k].contains([i, 6])) {
                                                         targeted = true;
@@ -392,8 +400,8 @@ class ChessGame {
                                             }
 
                                             if (!targeted) {
-                                                freeTiles.push([data.i,6])
-                                                freeTiles.push([data.i,7])
+                                                freeTiles.push([data.i, 6])
+                                                freeTiles.push([data.i, 7])
                                             }
                                         }
                                         break;
@@ -434,13 +442,22 @@ class ChessGame {
                 for (var t = 0; t < 2; t++) {
                     for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
                         if (currentState[x + i][j] == 0) {
-                            ;
+    
+                            //console.log('ici1')
+                            //console.log([x + i, j])
+
                             freeTiles.push([x + i, j]);
                         }
                         else {
                             var dataD = { i: x + i, j: j, p: currentState[x + i][j] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [x + i, j]
+
+
+                               //console.log('ici2')
+                               // console.log(pos)
+                                
+
                                 freeTiles.push(pos);
                             }
                             break;
@@ -452,12 +469,20 @@ class ChessGame {
                 for (var t = 0; t < 2; t++) {
                     for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
                         if (currentState[i][j + y] == 0) {
+
+                            //console.log('ici3')
+                            //console.log([i,j+y])
+                            
                             freeTiles.push([i, j + y]);
                         }
                         else {
                             var dataD = { i: i, j: j + y, p: currentState[i][j + y] }
                             if (this.canTake(data, dataD)) {
                                 var pos = [i, j + y]
+
+                                //console.log('ici4')
+                                //console.log(pos)
+                                
                                 freeTiles.push(pos);
                             }
                             break;
@@ -473,14 +498,25 @@ class ChessGame {
                         for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
 
                             if (currentState[i + x][j + y] == 0) {
+
+                                //console.log('ici5')
+                                //console.log([i + x,j + y])
+
                                 freeTiles.push([x + i, j + y]);
                             }
                             else {
                                 var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
+                                if (data.p == dataD.p) {
+                                    continue;
+                                }
                                 if (this.canTake(data, dataD)) {
                                     var pos = [x + i, j + y]
+
+                                    //console.log('ici5')
+                                    //console.log(pos)
                                     freeTiles.push(pos);
                                 }
+
                                 break;
                             }
                         }
@@ -546,6 +582,9 @@ class ChessGame {
                             }
                             else {
                                 var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
+                                if (data.p == dataD.p) {
+                                    continue;
+                                }
                                 if (this.canTake(data, dataD)) {
                                     var pos = [x + i, j + y]
                                     freeTiles.push(pos);
@@ -636,9 +675,9 @@ class ChessGame {
                 if ((this.isWhiteParPiece(data.p) && i == 3) || (this.isBlackParPiece(data.p) && i == 4)) {
                     for (k = 0; k < 2; k++) {
 
-                        if (j + sides[k] < 8 && j + sides[k] >= 0) {                         
+                        if (j + sides[k] < 8 && j + sides[k] >= 0) {
 
-                            if (currentState[i][j + sides[k]] == 6 || currentState[i][j + sides[k]] == 12 ) {
+                            if (currentState[i][j + sides[k]] == 6 || currentState[i][j + sides[k]] == 12) {
 
                                 var pos = [(j + sides[k]) * this.step, i * this.step]
 
@@ -648,7 +687,7 @@ class ChessGame {
 
                                     if (pawn[0].id == this.pawnJustAdvancedOfTwo.id) {
 
-                                        freeTiles.push([i + (this.isWhiteParPiece(data.p) ? -1:1), j + sides[k]])
+                                        freeTiles.push([i + (this.isWhiteParPiece(data.p) ? -1 : 1), j + sides[k]])
                                     }
                                 }
                             }
@@ -777,6 +816,8 @@ class ChessGame {
         $('#giveUp').hide();
         $('#replay').click(LoadChessBoard);
         $('#replay').show();
+
+        gameOver = true;
     }
 
 
@@ -802,6 +843,8 @@ class ChessGame {
     }
 
     SelectPiece(event, pos = null) {
+
+        this.resetPreview();
 
         var chessGame = this;
 
@@ -1004,7 +1047,12 @@ class ChessGame {
                 var type = chessGame.getPieceTypeFromEl(this);
                 var data = { i: pos[0] / chessGame.step, j: pos[1] / chessGame.step, p: type }
 
+
                 var listTargets = chessGame.checkPossibleTiles(data);
+                if (type == 2) {
+                    console.log(this)
+                    console.log(listTargets)
+                }
 
                 chessGame.listTargetedSquare.push(listTargets);
             }
@@ -1084,6 +1132,10 @@ class ChessGame {
         return (this.isBlack(el)) && this.toBlack || (this.isWhite(el) && (this.toWhite));
     }
 
+    isColorTurnParType(p) {
+        return (this.isBlackParPiece(p)) && this.toBlack || (this.isWhiteParPiece(p) && (this.toWhite));
+    }
+
     isInListAvailablePos(pos) {
 
         var foundSquare = null;
@@ -1112,7 +1164,7 @@ class ChessGame {
     }
 
 
-    playMove2(newSquare) {
+    playMove2(newSquare, automaticPlay = false) {
 
         this.pawnJustAdvancedOfTwo = null;
 
@@ -1140,7 +1192,11 @@ class ChessGame {
         if (this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
             return;
         }
-       
+
+        if (!automaticPlay) {
+            $(chessGame.selectedPiece).css('transition-duration', '0.4s');
+        }
+
         var castle = false;
         //Code de déplacement
         //castle
@@ -1152,8 +1208,9 @@ class ChessGame {
             if (dataArrivee.j - dataDepart.j > 0) {
                 //castle king side
                 var tour = this.getElsAt([7 * this.step, dataDepart.i * this.step]);
-
-                $(tour[0]).css('transition-duration', '0.4s');
+                if (!automaticPlay) {
+                    $(tour[0]).css('transition-duration', '0.4s');
+                }
 
                 $(tour[0]).css('transform', 'translate( ' + 5 * this.step + 'px, ' + dataDepart.i * this.step + 'px)')
                 $(this.selectedPiece).css('transform', 'translate( ' + 6 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
@@ -1167,7 +1224,9 @@ class ChessGame {
                 //castle queen side
                 var tour = this.getElsAt([0, dataDepart.i * this.step]);
 
-                $(tour[0]).css('transition-duration', '0.4s');
+                if (!automaticPlay) {
+                    $(tour[0]).css('transition-duration', '0.4s');
+                }
 
                 $(tour[0]).css('transform', 'translate( ' + (3 * this.step) + 'px, ' + (dataDepart.i * this.step) + 'px)');
                 $(this.selectedPiece).css('transform', 'translate( ' + 2 * this.step + 'px, ' + dataDepart.i * this.step + 'px)');
@@ -1199,48 +1258,71 @@ class ChessGame {
 
             }
 
-            var promotion = document.createElement('div');
-            promotion.id = 'promotion-choice';
-            promotion.classList.add('top');
+            if (!automaticPlay) {
 
-            for (var t = 0; t < 4; t++) {
+                var promotion = document.createElement('div');
+                promotion.id = 'promotion-choice';
+                promotion.classList.add('top');
 
+                for (var t = 0; t < 4; t++) {
+
+                    if (dataArrivee.i == 0) {
+                        //Promotion piece blanche
+                        var pieceProm = document.createElement('squarePromotion');
+                        pieceProm.style.top = t * 12.5 + '%';
+                        pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
+
+                        var piece = document.createElement('piecePromotion');
+                        piece.innerHTML = this.listProm[t][0];
+                        piece.id = (this.listProm[t][1])
+                        pieceProm.appendChild(piece)
+                        promotion.appendChild(pieceProm);
+                    } else if (dataArrivee.i == 7) {
+                        //Promotion piece noire
+                        var pieceProm = document.createElement('squarePromotion');
+                        pieceProm.style.top = 87.5 - (t * 12.5) + '%';
+                        pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
+
+                        var piece = document.createElement('piecePromotion');
+                        piece.innerHTML = this.listProm[t + 4][0];
+                        piece.id = (this.listProm[t + 4][1])
+                        pieceProm.appendChild(piece)
+                        promotion.appendChild(pieceProm);
+                    }
+                }
+
+                $('div.main-board').append(promotion);
+
+                $('squarePromotion').click(function (event) {
+                    chessGame.selectedPiece.innerHTML = $(event.target).html();
+                    chessGame.selectedPiece.id = event.target.id;
+                    //this.selectedPiece = chessGame.getElsAt(chessGame.initialSelectedPiecePos)[0];
+                    //console.log(chessGame.initialSelectedPiecePos);
+                    chessGame.playMove2(newSquare);
+                    $('#promotion-choice').remove();
+                });
+                return;
+            } else {
+                //si on est en automatique
                 if (dataArrivee.i == 0) {
                     //Promotion piece blanche
-                    var pieceProm = document.createElement('squarePromotion');
-                    pieceProm.style.top = t * 12.5 + '%';
-                    pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
+                    this.selectedPiece.innerHTML = this.listProm[0][0];
+                    this.selectedPiece.id = this.listProm[0][1];
+                    //this.selectedPiece = this.getElsAt(this.initialSelectedPiecePos)[0];
 
-                    var piece = document.createElement('piecePromotion');
-                    piece.innerHTML = this.listProm[t][0];
-                    piece.id = (this.listProm[t][1])
-                    pieceProm.appendChild(piece)
-                    promotion.appendChild(pieceProm);
+
+                    console.log(newSquare);
+                    console.log(this.initialSelectedPiecePos);
+
+                    //this.playMove2(newSquare);
+                    //return;
                 } else if (dataArrivee.i == 7) {
-                    //Promotion piece noire
-                    var pieceProm = document.createElement('squarePromotion');
-                    pieceProm.style.top = 87.5-(t * 12.5) + '%';
-                    pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
-
-                    var piece = document.createElement('piecePromotion');
-                    piece.innerHTML = this.listProm[t+4][0];
-                    piece.id = (this.listProm[t+4][1])
-                    pieceProm.appendChild(piece)
-                    promotion.appendChild(pieceProm);
+                    this.selectedPiece.id = this.listProm[4][1];
+                    this.selectedPiece.innerHTML = this.listProm[4][0];
+                    //this.selectedPiece = this.getElsAt(this.initialSelectedPiecePos)[0];
+                    this.playMove2(newSquare);
                 }
             }
-
-            $('div.main-board').append(promotion);
-
-            $('squarePromotion').click(function (event) {
-                chessGame.selectedPiece.innerHTML = $(event.target).html();
-                chessGame.selectedPiece.id = event.target.id;
-
-                this.selectedPiece = chessGame.getElsAt(chessGame.initialSelectedPiecePos)[0];
-                chessGame.playMove2(newSquare);
-                $('#promotion-choice').remove();
-            });
-            return;
 
         } else {
 
@@ -1294,7 +1376,7 @@ class ChessGame {
             index.classList.add('index');
             index.innerHTML = this.currentTurn;
             $(rowRecap).append(index);
-           
+
             index.style.left = "0%";
         }
 
@@ -1320,6 +1402,8 @@ class ChessGame {
         $(moveElement).click(function () {
             event.stopPropagation();
             $('square.oldDest, square.newDest').remove();
+            //$('square.oldDestT, square.newDestT').remove();
+
             var oldDestT = document.createElement('square');
             var newDestT = document.createElement('square');
 
@@ -1327,17 +1411,19 @@ class ChessGame {
             newDestT.classList.add('newDest');
 
             chessGame.loadPosition($(this).data().state);
-            chessGame.board.append(oldDest);
-            chessGame.board.append(newDest);
+            chessGame.board.append(oldDestT);
+            chessGame.board.append(newDestT);
 
             //console.log($(this).data().posA[0])
             //console.log($(this).data().posA[0] * chessGame.getStep())
             //console.log(chessGame.step);
             //console.log(chessGame.getStep());
-            console.log(oldDest)
-            console.log(newDest)
-            $('oldDest').css('transform', 'translate( ' + ($(this).data().posD[0] * chessGame.getStep()) + 'px, ' + ($(this).data().posD[1] * chessGame.getStep()) + 'px)');
-            //newDestT.style.transform = 'translate( ' + ($(this).data().posA[0] * chessGame.getStep()) + 'px, ' + ($(this).data().posA[1] * chessGame.getStep())+ 'px)';
+
+            console.log(oldDestT)
+            console.log(newDestT)
+            //$('oldDest').css('transform', 'translate()');
+            $('.oldDest').css('transform', 'translate( ' + ($(this).data().posD[1] * chessGame.getStep()) + 'px, ' + ($(this).data().posD[0] * chessGame.getStep()) + 'px)');
+            $('.newDest').css('transform', 'translate( ' + ($(this).data().posA[1] * chessGame.getStep()) + 'px, ' + ($(this).data().posA[0] * chessGame.getStep()) + 'px)');
 
             console.log('translate( ' + ($(this).data().posD[0] * chessGame.getStep()) + 'px, ' + ($(this).data().posD[1] * chessGame.getStep()) + 'px)')
 
@@ -1417,6 +1503,7 @@ class ChessGame {
                     if (target.length > 0) {
 
                         if (target[0].id == (this.toWhite ? 'white king' : 'black king')) {
+
                             check = true;
                             var checkSquare = this.createSquareAtPos(pos, 'square', 'check');
                         }
@@ -1545,6 +1632,54 @@ class ChessGame {
 
         this.consultedState = _.cloneDeep(state);
     }
+
+    listAllAvailableTiles() {
+
+        var positionObject = []
+
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+                var type = this.currentState[i][j]
+                if (type != 0 && this.isColorTurnParType(type)) {
+                    var posD = [i, j];
+                    var data = { i: i, j: j, p: type }
+                    var listPosAvailable = this.checkPossibleTiles(data);
+                    if (listPosAvailable.length > 0) {
+                        var dataPos = { posD: posD, listPosA: listPosAvailable };
+                        positionObject.push(dataPos);
+                    }
+                }
+            }
+        }
+        return positionObject;
+    }
+}
+
+function GameOver() {
+    return gameOver;
+}
+
+// format posD = [X,Y], posA = [X,Y]
+function playMove(result) {
+    var pos = JSON.parse(result);
+
+    posDX = pos.posD[1] * currentChessGame.step
+    posDY = pos.posD[0] * currentChessGame.step
+
+    posAX = pos.posA[1] * currentChessGame.step
+    posAY = pos.posA[0] * currentChessGame.step
+
+
+    currentChessGame.SelectPiece(null, [posDX, posDY]);
+
+    currentChessGame.playMove2([posAX, posAY], true);
+
+    $('cg-board').unbind('mousemove');
+}
+
+function getState() {
+    var listPos = currentChessGame.listAllAvailableTiles();
+    return { state: currentChessGame.currentState, listPos: listPos, toWhite: currentChessGame.toWhite };
 }
 
 function equalState(state1, state2) {
