@@ -1,42 +1,11 @@
 ﻿
 /*Gestion du conteneur du board*/
-
-.main-board,
-.mini-board,
-.mini-game .cg-wrap {
-    position: relative;
-    display: block;
-    height: 0;
-    padding-bottom: 100%;
-    width: 100%;
-.board {
-    position: absolute;
-    width: 800%;
-    height: 800%;
-    display: block;
-    bottom: 0;
-}
-
-    cg-board,
-    .main-board .cg-wrap {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        padding-bottom:100%
-    }
-
-.cg-wrap,
-.mini-game .cg-wrap {
-    display: table;
-}
-
-
 cg-board {
     position: absolute;
     width: 100%;
     height: 100%;
     cursor: pointer;
-    z-index: 1;
+    z-index:1;
 }
 
 .cg-wrap, .mini-game .cg-wrap {
@@ -48,21 +17,6 @@ cg-board {
 
 piece {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 12.5%;
-    height: 12.5%;
-    background-size: cover;
-    z-index: 2;
-    /*will-change: transform;*/
-    pointer-events: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 400%;
-}
-
-piecePromotion {
     top: 0;
     left: 0;
     width: 12.5%;
@@ -91,22 +45,7 @@ square {
     justify-content: center;
     align-items: center;
     font-size: 400%;
-    opacity: 0.2;
-}
-
-squarePromotion {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 12.5%;
-    height: 12.5%;
-    background-size: cover;
-    z-index: 2;
-    will-change: transform;
-    pointer-events: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    opacity:0.2;
 }
 
 
@@ -124,7 +63,7 @@ squarePromotion {
 .move-dest {
     background: radial-gradient(rgba(20, 85, 30, 0.5) 19%, rgba(0, 0, 0, 0) 20%);
     pointer-events: auto;
-    opacity: 1;
+    opacity:1;
 }
 
     .move-dest:hover {
@@ -142,21 +81,6 @@ squarePromotion {
         background-color: darkgreen;
         opacity: 0.2;
     }
-
-
-.oldDest {
-    background-color: #9abd4d;
-    pointer-events: auto;
-    opacity: 1;
-    z-index: 1;
-}
-
-.newDest {
-    background-color: #9abd4d;
-    pointer-events: auto;
-    opacity: 1;
-    z-index: 1;
-}
 
 cg-container {
     position: absolute;
@@ -271,103 +195,9 @@ cg-board {
 }
 
 .check {
-    background: radial-gradient(ellipse at center, red 0%, #ff0000 25%, rgb(255 255 255 / 0%) 89%, rgb(255 255 255 / 0%) 100%);
-    opacity: 1;
-    z-index: 1;
-}
-
-/*Gestion Promotion*/
-#promotion-choice {
-    background: rgba(237, 235, 233, 0.7);
-    z-index: 205;
-}
-
-    #promotion-choice squarePromotion {
-        cursor: pointer;
-        border-radius: 50%;
-        background-color: #b0b0b0;
-        /*box-shadow: inset 0 0 25px 3px #808080;*/
-        transition: all 150ms;
-        opacity: 1;
-    }
-
-    #promotion-choice piecePromotion {
-        pointer-events: auto;
-        opacity: 1;
-    }
-
-.is2d #promotion-choice piecePromotion {
-    width: 100%;
-    height: 100%;
-    transition: all 150ms;
-    transform: scale(0.8);
-}
-
-#promotion-choice squarePromotion:hover {
-    box-shadow: inset 0 0 48px 8px #d64f00;
-    border-radius: 0%;
-}
-
-.is2d #promotion-choice square:hover piece {
-    transform: none;
+    background: radial-gradient(ellipse at center, red 0%, #ff0000 25%, rgb(255 255 255 / 82%) 89%, rgb(255 255 255) 100%);
+    opacity:1;
+    z-index:1;
 }
 
 
-/*Gestion recap coups*/
-.recapContainer {
-    /*grid-area: tools;*/
-    display: flex;
-    flex-direction:column;
-    background-color: white;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    height: 60vh;
-    width: 20vw;
-    overflow-y:auto;
-    overflow-x:hidden;
-}
-
-.index {
-    background-color: lightblue;
-    border: solid;
-    border-color: #00000036;
-    position: relative;
-    width: 10%;
-    display: flex;
-    justify-content: center;
-}
-
-.whiteMove {
-    background-color: lightblue;
-    border: solid;
-    border-color: #00000036;
-    position: relative;
-    width: 45%;
-    display: flex;
-    justify-content: center;
-}
-
-.blackMove {
-     background-color: lightblue;
-    border: solid;
-    border-color: #00000036;
-    position: relative;
-    width: 45%;
-    display: flex;
-    justify-content: center;
-
-}
-
-.rowRecap {
-    display: flex;
-    flex-direction: row;
-    height: fit-content;
-    width: inherit;
-}
-
-#promotion-choice {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    bottom:0;
-}

@@ -1,24 +1,36 @@
 ﻿@page "/Chess"
 
-@inject IJSRuntime jsruntime
+    <Title value="Chess"></Title>
 
+    @inject IJSRuntime jsruntime
     <div class="d-flex flex-row">
 
         <div class="d-flex flex-column">
             <div class="d-flex flex-row align-items-baseline">
                 <input id="detail" class="ml-5" type="checkbox" />
-                <p class="ml-2">Trame détaillée</p>
+                <p class="ml-2 ml-3">Trame détaillée</p>
             </div>
+            <div class="d-flex flex-row justify-content-center">
 
-            <div class="justify-content-center disable-select " id="board"></div>
+                <div style="width:35vw">
+                    <div class="main-board">
+                        <div class="disable-select cg-wrap" id="board"></div>
+                    </div>
+                </div>
 
+            </div>
         </div>
 
-        <div class="d-flex align-items-center justify-content-center ml-5" style="width:-webkit-fill-available" >
+        <div class="d-flex align-items-center justify-content-center" style="width:-webkit-fill-available">
             <div class="d-flex flex-column align-items-center">
                 <h2 id="trait">Trait aux blancs</h2>
+                <div class="recapContainer">
+                </div>
                 <button class="btn btn-primary mt-3" id="giveUp" style="width:fit-content">Abandonner</button>
                 <button class="btn btn-primary mt-3" id="replay" style="width:fit-content">Rejouer</button>
+
+
+
             </div>
         </div>
 
