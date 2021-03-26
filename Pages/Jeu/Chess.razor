@@ -5,7 +5,7 @@
 <Title value="Chess"></Title>
 
 @inject IJSRuntime jsruntime
-<div class="d-flex flex-row">
+<div class="d-flex flex-row mb-3">
 
     <div class="d-flex flex-column">
         <div class="d-flex flex-row align-items-baseline">
@@ -75,6 +75,12 @@
         {
             dynamic data = await jsruntime.InvokeAsync<object>("getState");
             var result = PythonApp.LaunchExternalEngine(data.ToString());
+
+            if(result == "")
+            {
+                break;
+            }
+
             await jsruntime.InvokeVoidAsync("playMove", (string)result);
             await Task.Delay(delay);
         }

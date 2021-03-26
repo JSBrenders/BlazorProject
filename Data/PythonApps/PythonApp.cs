@@ -29,15 +29,19 @@ namespace ProjetTp1.Data.PythonApps
         public static string LaunchExternalEngine(dynamic data)
         {
             // full path of python interpreter 
-            string python = @"‪C:\Users\jeans\Documents\Project1\Log.txt";
+            //string python = @"‪C:\Users\jeans\Documents\Project1\Log.txt";
 
             // python app to call 
-            string myPythonApp = @"C:\Users\jeans\source\repos\Engine\Engine.py";
+            //P
+            //string myPythonApp = @"C:\Users\jeans\source\repos\Engine\Engine.py";
+            //b
+            //string myPythonApp = @"‪C:\Users\jeansebastien\source\repos\JSBrenders\Engine\Engine.py";
+            string myPythonApp = Path.Combine(Directory.GetCurrentDirectory(), @"Data\PythonApps\Engine.py");
+                
+                //"‪C:\\Users\\jeansebastien\\source\\repos\\JSBrenders\\Engine\\Engine.py";
             //string myPythonApp = @"‪‪C:\uest.py";
 
-            // dummy parameters to send Python script 
-            int x = 2;
-            int y = 5;
+
             string myString = "";
             // Create new process start info 
             ProcessStartInfo myProcessStartInfo = new("python.exe");
@@ -50,7 +54,9 @@ namespace ProjetTp1.Data.PythonApps
             // 1st arguments is pointer to itself,  
             // 2nd and 3rd are actual arguments we want to send 
             //myProcessStartInfo.FileName = python;
+            //myProcessStartInfo.Arguments = myPythonApp + " " + JsonConvert.SerializeObject(data);
             myProcessStartInfo.Arguments = myPythonApp + " " + JsonConvert.SerializeObject(data);
+
 
             Process myProcess = new();
             // assign start information to the process 
