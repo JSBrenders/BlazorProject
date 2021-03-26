@@ -332,8 +332,6 @@ class ChessGame {
     checkPossibleTiles(data, State = null) {
         //on va renvoyer une liste d'objet pos = (ligne,colonne) de cases libres ou de pièces à prendre
 
-        console.trace();
-
         //si on veut un state en particulier (State non null) 
         var currentState = State == null ? this.currentState : State;
 
@@ -1050,8 +1048,8 @@ class ChessGame {
 
                 var listTargets = chessGame.checkPossibleTiles(data);
                 if (type == 2) {
-                    console.log(this)
-                    console.log(listTargets)
+                    //console.log(this)
+                    //console.log(listTargets)
                 }
 
                 chessGame.listTargetedSquare.push(listTargets);
@@ -1309,10 +1307,6 @@ class ChessGame {
                     this.selectedPiece.innerHTML = this.listProm[0][0];
                     this.selectedPiece.id = this.listProm[0][1];
                     //this.selectedPiece = this.getElsAt(this.initialSelectedPiecePos)[0];
-
-
-                    console.log(newSquare);
-                    console.log(this.initialSelectedPiecePos);
 
                     //this.playMove2(newSquare);
                     //return;
@@ -1659,8 +1653,13 @@ function GameOver() {
     return gameOver;
 }
 
-// format posD = [X,Y], posA = [X,Y]
+// format {"posD" : [Y,X], "posA" = [Y,X]}
 function playMove(result) {
+    //console.log(result)
+    if (result == null || result == "" || !result)
+    {
+        return false;
+    }
     var pos = JSON.parse(result);
 
     posDX = pos.posD[1] * currentChessGame.step
