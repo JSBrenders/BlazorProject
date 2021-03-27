@@ -26,19 +26,19 @@ namespace ProjetTp1.Data.PythonApps
             return parameter;
         }
 
-        public static string LaunchExternalEngine(dynamic data)
+        public static string LaunchExternalEngine(string data)
         {
             // full path of python interpreter 
             //string python = @"‪C:\Users\jeans\Documents\Project1\Log.txt";
 
             // python app to call 
             //P
-            //string myPythonApp = @"C:\Users\jeans\source\repos\Engine\Engine.py";
+            string myPythonApp = @"C:\Users\jeans\source\repos\Engine\Engine.py";
             //b
             //string myPythonApp = @"‪C:\Users\jeansebastien\source\repos\JSBrenders\Engine\Engine.py";
-            string myPythonApp = Path.Combine(Directory.GetCurrentDirectory(), @"Data\PythonApps\Engine.py");
-                
-                //"‪C:\\Users\\jeansebastien\\source\\repos\\JSBrenders\\Engine\\Engine.py";
+            //string myPythonApp = Path.Combine(Directory.GetCurrentDirectory(), @"Data\PythonApps\Engine.py");
+
+            //"‪C:\\Users\\jeansebastien\\source\\repos\\JSBrenders\\Engine\\Engine.py";
             //string myPythonApp = @"‪‪C:\uest.py";
 
 
@@ -55,7 +55,7 @@ namespace ProjetTp1.Data.PythonApps
             // 2nd and 3rd are actual arguments we want to send 
             //myProcessStartInfo.FileName = python;
             //myProcessStartInfo.Arguments = myPythonApp + " " + JsonConvert.SerializeObject(data);
-            myProcessStartInfo.Arguments = myPythonApp + " " + JsonConvert.SerializeObject(data);
+            myProcessStartInfo.Arguments = myPythonApp + " " + data;
 
 
             Process myProcess = new();

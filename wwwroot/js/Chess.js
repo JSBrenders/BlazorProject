@@ -26,28 +26,32 @@ function LoadChessBoard() {
 
     var chessGame = new ChessGame();
 
+
     currentChessGame = chessGame;
+  
 
     $('#giveUp').show();
     $('#giveUp').click(function () {
         //si les blancs abandonnent on passe en parametre les noirs
-        chessGame.endGame(chessGame.toWhite ? 7 : 1, true);
+        chessGame.endGame(true);
     });
 
     chessGame.listPiece = [
-        ["black rook", "&#9820", 9],
-        ["black knight", "&#9822", 11],
-        ["black bishop", "&#9821", 10],
-        ["black queen", "&#9819", 8],
-        ["black king", "&#9818", 7],
-        ["black pawn", "&#9823", 12],
-        ["white rook", "&#9814", 3],
-        ["white knight", "&#9816", 5],
-        ["white bishop", "&#9815", 4],
-        ["white queen", "&#9813", 2],
-        ["white king", "&#9812", 1],
-        ["white pawn", "&#9817", 6]
+        ["black rook", "&#9820", 9,'r'],
+        ["black knight", "&#9822", 11, 'n'],
+        ["black bishop", "&#9821", 10, 'b'],
+        ["black queen", "&#9819", 8, 'q'],
+        ["black king", "&#9818", 7, 'k'],
+        ["black pawn", "&#9823", 12, 'p'],
+        ["white rook", "&#9814", 3, 'R'],
+        ["white knight", "&#9816", 5, 'N'],
+        ["white bishop", "&#9815", 4, 'B'],
+        ["white queen", "&#9813", 2, 'Q'],
+        ["white king", "&#9812", 1, 'K'],
+        ["white pawn", "&#9817", 6, 'P']
     ];
+
+    $('#FEN').html(chessGame.generateFEN());
 
     chessGame.listProm = [
         ["&#9813", 'white queen'],
@@ -150,7 +154,7 @@ function LoadChessBoard() {
         //l'on clique ou non sur une case available en preview
         if (newSquare != null) {
             //On clique sur une case de la preview        
-            chessGame.playMove2(newSquare);
+            chessGame.playMove2(newSquare, false);
             chessGame.alreadyPlayed = true;
 
         } else {
@@ -165,6 +169,7 @@ function LoadChessBoard() {
 
     $('cg-board').mouseup(function (eventObj) {
 
+
         if (!chessGame.alreadyPlayed) {
             var clickX = eventObj.pageX - chessGame.board.offset().left;
             var clickY = eventObj.pageY - chessGame.board.offset().top;
@@ -174,10 +179,11 @@ function LoadChessBoard() {
 
             if (newSquare) {
 
-                chessGame.playMove2(newSquare);
+                chessGame.playMove2(newSquare, true);
             }
             else {
                 chessGame.resetPiece(true);
+              
             }
         }
         $('cg-board').unbind('mousemove');
@@ -238,6 +244,7 @@ class ChessGame {
 
         this.consultedState = this.initialState;
 
+        this.castleState = "KQkq";
 
         this.listPiece;
         //this.WR = ["R","white rook",3];
@@ -285,11 +292,13 @@ class ChessGame {
 
         this.step;
 
+        this.halfClock = 0;
+
         this.audio = new Audio('FX/ChessMove.mp3');
 
         this.hasMoved = [];
-        this.pawnJustAdvancedOfTwo;
-
+        this.pawnJustAdvancedOfTwo = null;
+        this.enPassantPos = null;
         //liste des targets actuelles de toutes les pièces (pour gérer le castle notamment)
         this.listTargetedSquare = [];
 
@@ -789,28 +798,23 @@ class ChessGame {
     }
 
     //p représente la couleur du vainqueur (entre 1 et 6 blanc, entre 7 et 12 noir) forfeit est un paramètre optionnel pour gérer l'abandon
-    endGame(p, forfeit = false) {
+    endGame(forfeit = false, draw = false) {
 
-        var ffColor;
-        if (this.getColor(p) == "black") {
-            ffColor = 'Blancs';
-        } else if (this.getColor(p) == "white") {
-            ffColor = 'Noirs';
-        }
+        var fen = this.generateFEN();
+        var colorLastTurn = fen.split(' ')[1];
+        var ffColor = colorLastTurn == 'w' ? 'Blancs' : 'Noirs';
+        var winnerColor = colorLastTurn == 'w' ? forfeit ? 'Blancs' : 'Noirs' : forfeit ? 'Noirs' : 'Blancs';
 
-        var winnerColor;
-        if (this.getColor(p) == "white") {
-            winnerColor = 'Blancs';
-        } else if (this.getColor(p) == "black") {
-            winnerColor = 'Noirs';
-        }
-
-        if (forfeit) {
-            $('#trait').html('Les ' + ffColor + ' ont abandonnés : Victoire des ' + winnerColor);
+        if (draw) {
+            $('#trait').html('Match Nul');
         } else {
-            $('#trait').html('Félicitation aux ' + winnerColor + ' ! Victoire par  Echec et Mat !');
+            if (forfeit) {
+                $('#trait').html('Les ' + ffColor + ' ont abandonnés : Victoire des ' + winnerColor);
+            } else {
+                $('#trait').html('Félicitation aux ' + winnerColor + ' ! Victoire par  Echec et Mat !');
+            }
         }
-
+        $('#FEN').html(this.generateFEN());
         $('#giveUp').hide();
         $('#replay').click(LoadChessBoard);
         $('#replay').show();
@@ -840,6 +844,7 @@ class ChessGame {
         return this.step;
     }
 
+    // posX,posY
     SelectPiece(event, pos = null) {
 
         this.resetPreview();
@@ -955,16 +960,13 @@ class ChessGame {
     //renvoie une position (haut gauche) qui représente une case
     getSquareAtPos(pos) {
 
-
         var top = pos[1];
         var left = pos[0];
 
         var step = this.step;
 
-
         var posTop = top - (top % step);
         var posLeft = left - (left % step);
-
 
         return [posLeft, posTop];
     }
@@ -998,9 +1000,10 @@ class ChessGame {
 
         var board = this.board;
 
-        var relX = $(el).offset().top - board.offset().top;
-        var relY = $(el).offset().left - board.offset().left;
-        var pos1 = [relX, relY];
+        var relY = $(el).offset().top - board.offset().top;
+
+        var relX = $(el).offset().left - board.offset().left;
+        var pos1 = [relY, relX];
 
         var pos2 = this.getSquareAtPos(pos1);
 
@@ -1162,9 +1165,12 @@ class ChessGame {
     }
 
 
-    playMove2(newSquare, automaticPlay = false) {
+    playMove2(newSquare,drag, automaticPlay = false) {
+
+        var nbPieceBefore = $('piece').length;
 
         this.pawnJustAdvancedOfTwo = null;
+        this.enPassantPos = null;
 
         $('square.oldDest, square.newDest').remove();
         $('.check').remove();
@@ -1191,7 +1197,7 @@ class ChessGame {
             return;
         }
 
-        if (!automaticPlay) {
+        if (!drag) {
             $(chessGame.selectedPiece).css('transition-duration', '0.4s');
         }
 
@@ -1296,7 +1302,7 @@ class ChessGame {
                     chessGame.selectedPiece.id = event.target.id;
                     //this.selectedPiece = chessGame.getElsAt(chessGame.initialSelectedPiecePos)[0];
                     //console.log(chessGame.initialSelectedPiecePos);
-                    chessGame.playMove2(newSquare);
+                    chessGame.playMove2(newSquare, true);
                     $('#promotion-choice').remove();
                 });
                 return;
@@ -1314,7 +1320,7 @@ class ChessGame {
                     this.selectedPiece.id = this.listProm[4][1];
                     this.selectedPiece.innerHTML = this.listProm[4][0];
                     //this.selectedPiece = this.getElsAt(this.initialSelectedPiecePos)[0];
-                    this.playMove2(newSquare);
+                    this.playMove2(newSquare, true);
                 }
             }
 
@@ -1330,9 +1336,13 @@ class ChessGame {
 
         }
 
+        //fin du déplacement des pieces
+        setTimeout(() => { $(chessGame.selectedPiece).css('transition-duration', ''); }, 400);
+
         if (this.selectedPiece.id.includes('pawn') && Math.abs(dataArrivee.i - dataDepart.i) > 1) {
             //On vient de jouer un pion depuis sa ligne de départ de 2 cases 
             this.pawnJustAdvancedOfTwo = this.selectedPiece;
+            this.enPassantPos = [dataArrivee.i, dataArrivee.j];
         }
 
         this.resetPiece(false);
@@ -1473,7 +1483,7 @@ class ChessGame {
                 //on vérifie si on a une situation de checkMate
                 if (chessGameL.checkMate(chessGameL.toWhite ? 1 : 7)) {
                     //Si checkMate on passe en parametre le vainqueur
-                    chessGameL.endGame(chessGameL.toWhite ? 7 : 1);
+                    chessGameL.endGame();
                     end = true;
                 }
             }
@@ -1512,12 +1522,54 @@ class ChessGame {
         this.VisualizeState(this.currentState, this.currentTurn, this.toWhite);
 
         //si tour ou roi on marque met la piece dans la liste des hasMoved pour le castle
-        if ([1, 7, 3, 9].includes(this.getPieceTypeFromEl(this.selectedPiece))) {
+        var type = this.getPieceTypeFromEl(this.selectedPiece);
+        if ([1, 7, 3, 9].includes(type)) {
             this.hasMoved.push(this.selectedPiece);
+            switch (type) {
+                case 1:
+                    this.castleState = this.castleState.replace('K', '');
+                    this.castleState = this.castleState.replace('Q', '');
+                    break;
+                case 7:
+                    this.castleState = this.castleState.replace('k', '');
+                    this.castleState = this.castleState.replace('q', '');
+                    break;
+                case 3:
+                    if (dataDepart.j == 0) {
+                        this.castleState = this.castleState.replace('Q', '');
+                    }
+                    if (dataDepart.j == 7) {
+                        this.castleState = this.castleState.replace('K', '');
+                    }
+                    break;
+                case 9:
+                    if (dataDepart.j == 0) {
+                        this.castleState = this.castleState.replace('q', '');
+                    }
+                    if (dataDepart.j == 7) {
+                        this.castleState = this.castleState.replace('k', '');
+                    }
+                    break;
+            }
+        }
+        if (this.castleState == '') {
+            this.castleState = '-';
+        }
+
+        var nbPieceAfter = $('piece').length;
+        var pieceTaken = nbPieceBefore - nbPieceAfter > 0;
+
+        if (!pieceTaken && !this.selectedPiece.id.includes('pawn')) {
+            this.halfClock++;
+        } else {
+            this.halfClock = 0;
         }
 
         //On vide la liste des positions available
         this.listTileAvailable = [];
+
+        //Affichage du FEN
+        $('#FEN').html(this.generateFEN());
     }
 
     LaunchPreview(data, availablePositions) {
@@ -1615,7 +1667,7 @@ class ChessGame {
 
                     this.board.append(pieceElement);
 
-                    $(pieceElement).css('transition-duration', '1s');
+                    //$(pieceElement).css('transition-duration', '1s');
                     pieceElement.style.transform = 'translate( ' + posX + 'px, ' + posY + 'px)';
                 }
 
@@ -1647,38 +1699,97 @@ class ChessGame {
         }
         return positionObject;
     }
+
+    generateFEN() {
+        var FEN = "";
+        for (var i = 0; i < 8; i++) {
+            var nbVide = 0;
+            for (var j = 0; j < 8; j++) {
+
+                var type = currentChessGame.currentState[i][j];
+
+                if (type != 0) {
+                    if (nbVide > 0) {
+                        FEN += nbVide;
+                        nbVide = 0;
+                    }
+                    FEN += findPieceInList(type);
+                } else {
+                    nbVide++;
+                }
+            }
+            if (nbVide > 0) {
+                FEN += nbVide;
+            }
+            if (i < 7) {
+                FEN += "/";
+            }
+        }
+
+        //w = trait aux blanc, b = trait aux noir
+        FEN += currentChessGame.toWhite ? ' w ' : ' b ';
+
+        //privilèges de rock
+        FEN += currentChessGame.castleState + ' ';
+        var enPassant = '-';
+        if (currentChessGame.pawnJustAdvancedOfTwo != null) {
+
+            var pos = this.enPassantPos;
+
+            var direction = currentChessGame.isWhiteParPiece(currentChessGame.getPieceTypeFromEl(currentChessGame.pawnJustAdvancedOfTwo)) ? 1 : -1;
+
+            enPassant = String.fromCharCode(97 + pos[1]) + '' + (8 - (pos[0] + direction));  
+        }
+
+        FEN += enPassant + ' ';
+
+        FEN += currentChessGame.halfClock + ' ';
+        FEN += currentChessGame.currentTurn;
+
+        return FEN;
+    }
 }
 
 function GameOver() {
     return gameOver;
 }
 
-// format {"posD" : [Y,X], "posA" = [Y,X]}
+// format a2a4
 function playMove(result) {
-    //console.log(result)
-    if (result == null || result == "" || !result)
-    {
+
+    console.log(result)
+
+    if (result == '1-0' || result == '0-1') {
+        currentChessGame.endGame();
+        return;
+    }
+    if (result == '1/2-1/2') {
+        currentChessGame.endGame(false, true);
+        return;
+    }
+
+    if (result == null || result == "" || !result) {
         return false;
     }
-    var pos = JSON.parse(result);
 
-    posDX = pos.posD[1] * currentChessGame.step
-    posDY = pos.posD[0] * currentChessGame.step
 
-    posAX = pos.posA[1] * currentChessGame.step
-    posAY = pos.posA[0] * currentChessGame.step
+    posDY = (8 - result.charAt(1)) * currentChessGame.step //Y de départ
+    posDX = (result.charAt(0).charCodeAt(0) - 97) * currentChessGame.step // X de départ
+
+    posAX = (8-result.charAt(3)) * currentChessGame.step
+    posAY = (result.charAt(2).charCodeAt(0) - 97) * currentChessGame.step
+
 
 
     currentChessGame.SelectPiece(null, [posDX, posDY]);
 
-    currentChessGame.playMove2([posAX, posAY], true);
+    currentChessGame.playMove2([posAY, posAX], !$('#AutoTransition').prop('checked'), true);
 
     $('cg-board').unbind('mousemove');
 }
 
 function getState() {
-    var listPos = currentChessGame.listAllAvailableTiles();
-    return { state: currentChessGame.currentState, listPos: listPos, toWhite: currentChessGame.toWhite };
+    return currentChessGame.generateFEN();
 }
 
 function equalState(state1, state2) {
@@ -1689,6 +1800,14 @@ function equalState(state1, state2) {
         }
     }
     return equals;
+}
+
+function findPieceInList(p) {
+    for (var i = 0; i < currentChessGame.listPiece.length; i++) {
+        if (currentChessGame.listPiece[i][2] == p) {
+            return currentChessGame.listPiece[i][3];
+        }
+    }
 }
 
 Array.prototype.contains = function (subArray) {
