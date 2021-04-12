@@ -10,9 +10,9 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
-  <Target Name="PrePublishTarget" AfterTargets="Publish">
+  <!--<Target Name="PrePublishTarget" AfterTargets="Publish">
     <Exec Command="dotnet ef database update" />
-  </Target>
+  </Target>-->
 
   <ItemGroup>
     <Compile Remove="Migrations\20200107095832_l.cs" />
