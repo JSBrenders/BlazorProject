@@ -33,8 +33,8 @@ namespace ProjetTp1.Data.PythonApps
 
             // python app to call 
             //P
-            string myPythonApp = 
-                @"C:\Users\jeans\source\repos\Engine\Engine.py";
+            //string myPythonApp = 
+            //    @"C:\Users\jeans\source\repos\Engine\Engine.py";
             //b
             //string myPythonApp = @"‪C:\Users\jeansebastien\source\repos\JSBrenders\Engine\Engine.py";
             //string myPythonApp = Path.Combine(Directory.GetCurrentDirectory(), @"Data\PythonApps\Engine.py");
