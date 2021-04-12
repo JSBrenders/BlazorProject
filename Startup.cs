@@ -63,8 +63,9 @@ namespace ProjetTp1
             services.AddScoped<CurrentPartieController>();
             services.AddBlazorScopedCss(Assembly.GetExecutingAssembly());
             services.AddHttpContextAccessor();
-            services.AddDbContext<ProjetTp1Context>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("ProjetTp1Context")));
+            //services.AddDbContext<ProjetTp1Context>(options =>
+            //        options.UseSqlServer(Configuration.GetConnectionString("ProjetTp1Context")));
+            services.AddDbContext<ProjetTp1Context>();
             services.AddScoped<IdentificationToken>();
         }
 

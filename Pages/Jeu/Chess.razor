@@ -75,9 +75,11 @@
     {
         string data = await jsruntime.InvokeAsync<string>("getState");
 
-        var result = PythonApp.LaunchExternalEngine(data);
-
-        await jsruntime.InvokeVoidAsync("playMove", result);
+        var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
+        //var result = await ("http://localhost:8080/move").PostJsonAsync("{\"fen\": \"" + data + "\"}");
+        //var result = PythonApp.LaunchExternalEngine(data);
+        var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
+        await jsruntime.InvokeVoidAsync("playMove", data1.Result);
     }
 
     async Task LaunchGame()
@@ -88,14 +90,20 @@
         {
             string data = await jsruntime.InvokeAsync<string>("getState");
 
-            string result = PythonApp.LaunchExternalEngine(data);
+            var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
+            //var result = await ("http://localhost:8080/move").PostJsonAsync("{\"fen\": \"" + data + "\"}");
+            //var result = PythonApp.LaunchExternalEngine(data);
+            var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
+            await jsruntime.InvokeVoidAsync("playMove", data1.Result);
+
+            //string result = PythonApp.LaunchExternalEngine(data);
 
             //if(result.Length > 7)
             //{
             //    break;
             //}
 
-            await jsruntime.InvokeVoidAsync("playMove", result);
+            //await jsruntime.InvokeVoidAsync("playMove", result);
             await Task.Delay(delay);
         }
     }
