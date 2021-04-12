@@ -20,8 +20,6 @@ namespace ProjetTp1.Data.PythonApps
             }; // Add some sample parameters. Notice that there is no need in specifically setting the object type, interpreter will do that part for us in the script properly with high probability
 
             scope.SetVariable("params", d); // This will be the name of the dictionary in python script, initialized with previously created .NET Dictionary
-            ScriptSource source = engine.CreateScriptSourceFromFile(@"C:\Users\jeans\source\repos\Engine\Engine.py"); // Load the script
-            object result = source.Execute(scope);
             var parameter = scope.GetVariable<string>("parameter"); // To get the finally set variable 'parameter' from the python script
             return parameter;
         }
@@ -29,17 +27,12 @@ namespace ProjetTp1.Data.PythonApps
         public static string LaunchExternalEngine(string data)
         {
             // full path of python interpreter 
-            //string python = @"‪C:\Users\jeans\Documents\Project1\Log.txt";
+
 
             // python app to call 
             //P
             //string myPythonApp = 
-            //    @"C:\Users\jeans\source\repos\Engine\Engine.py";
-            //b
-            //string myPythonApp = @"‪C:\Users\jeansebastien\source\repos\JSBrenders\Engine\Engine.py";
-            //string myPythonApp = Path.Combine(Directory.GetCurrentDirectory(), @"Data\PythonApps\Engine.py");
 
-            //"‪C:\\Users\\jeansebastien\\source\\repos\\JSBrenders\\Engine\\Engine.py";
             //string myPythonApp = @"‪‪C:\uest.py";
 
 
