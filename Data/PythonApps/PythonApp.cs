@@ -56,7 +56,7 @@ namespace ProjetTp1.Data.PythonApps
             // 2nd and 3rd are actual arguments we want to send 
             //myProcessStartInfo.FileName = python;
             //myProcessStartInfo.Arguments = myPythonApp + " " + JsonConvert.SerializeObject(data);
-            myProcessStartInfo.Arguments = myPythonApp + " " + data;
+            //myProcessStartInfo.Arguments = myPythonApp + " " + data;
 
 
             Process myProcess = new();
