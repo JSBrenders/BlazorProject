@@ -10,9 +10,9 @@
 
     <div class="d-flex flex-column">
         @*<div class="d-flex flex-row align-items-baseline">
-            <input id="detail" class="ml-5" type="checkbox" />
-            <p class="ml-2 ml-3">Trame détaillée</p>
-        </div>*@
+                <input id="detail" class="ml-5" type="checkbox" />
+                <p class="ml-2 ml-3">Trame détaillée</p>
+            </div>*@
         <div class="d-flex flex-row align-items-baseline">
             <input id="AutoTransition" class="ml-5" type="checkbox" />
             <p class="ml-2 ml-3">Transition en Automatique</p>
@@ -51,7 +51,7 @@
     bool stop = false;
     string buttonLib = "stop";
     string buttonClass = "btn btn-danger ml-4";
-    int delay =1500;
+    int delay = 1500;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -78,8 +78,11 @@
         var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
         //var result = await ("http://localhost:8080/move").PostJsonAsync("{\"fen\": \"" + data + "\"}");
         //var result = PythonApp.LaunchExternalEngine(data);
-        var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
-        await jsruntime.InvokeVoidAsync("playMove", data1.Result);
+        if (result != null && result != "")
+        {
+            var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
+            await jsruntime.InvokeVoidAsync("playMove", data1.Result);
+        }
     }
 
     async Task LaunchGame()
