@@ -78,9 +78,9 @@
         var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
         //var result = await ("http://localhost:8080/move").PostJsonAsync("{\"fen\": \"" + data + "\"}");
         //var result = PythonApp.LaunchExternalEngine(data);
-        if (result != null && result != "")
+        var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
+        if (data1.Result != null && data1.Result != "")
         {
-            var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
             await jsruntime.InvokeVoidAsync("playMove", data1.Result);
         }
     }
