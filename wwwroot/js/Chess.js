@@ -1757,7 +1757,6 @@ function GameOver() {
 // format a2a4
 function playMove(result) {
 
-    console.log(result)
 
     if (result == '1-0' || result == '0-1') {
         currentChessGame.endGame();
