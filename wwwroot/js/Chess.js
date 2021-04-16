@@ -1,10 +1,10 @@
 ﻿//création du plateau
-
+var dotNetObject;
 var currentChessGame;
 var gameOver;
-function LoadChessBoard() {
+function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
-    
+    dotNetObject = dotnetObject
     gameOver = false;
 
     $('#replay').hide();
@@ -28,8 +28,8 @@ function LoadChessBoard() {
 
 
     currentChessGame = chessGame;
-  
-
+    chessGame.autoPlay = autoPlay;
+    chessGame.AISide = AISide
     $('#giveUp').show();
     $('#giveUp').click(function () {
         //si les blancs abandonnent on passe en parametre les noirs
@@ -123,6 +123,9 @@ function LoadChessBoard() {
                 piece.id = chessGame.listPiece[indexPiece][0] + ' ' + String.fromCharCode(65 + j);
             } else {
                 piece.id = chessGame.listPiece[indexPiece][0];
+            }
+            if (chessGame.listPiece[indexPiece][0].includes('white')){
+                //piece.style.backgroundColor = ""
             }
             piece.innerHTML = chessGame.listPiece[indexPiece][1];
             cgBoard.appendChild(piece);
@@ -289,6 +292,7 @@ class ChessGame {
         this.listTileNotPreview = [];
 
         this.board = $('cg-board');
+        this.turn = true //au départ c'est aux blancs de jouer
 
         this.step;
 
@@ -1423,8 +1427,8 @@ class ChessGame {
             //console.log(chessGame.step);
             //console.log(chessGame.getStep());
 
-            console.log(oldDestT)
-            console.log(newDestT)
+            //console.log(oldDestT)
+            //console.log(newDestT)
             //$('oldDest').css('transform', 'translate()');
             $('.oldDest').css('transform', 'translate( ' + ($(this).data().posD[1] * chessGame.getStep()) + 'px, ' + ($(this).data().posD[0] * chessGame.getStep()) + 'px)');
             $('.newDest').css('transform', 'translate( ' + ($(this).data().posA[1] * chessGame.getStep()) + 'px, ' + ($(this).data().posA[0] * chessGame.getStep()) + 'px)');
@@ -1445,6 +1449,7 @@ class ChessGame {
         this.isWhiteTurn = !this.isWhiteTurn;
         this.toBlack = !this.toBlack;
         this.toWhite = !this.toWhite;
+        this.turn = !this.turn;
 
         var chessGameL = this;
         var dataArrivee = { i: InewSquare, j: JnewSquare, p: typePiece }
@@ -1569,7 +1574,13 @@ class ChessGame {
         this.listTileAvailable = [];
 
         //Affichage du FEN
+        var fen = this.generateFEN();
         $('#FEN').html(this.generateFEN());
+
+        if (this.autoPlay && this.AISide == this.turn) {
+            console.log(typeof (dotNetObject))
+            dotNetObject.invokeMethodAsync('PlayAIMove', fen);
+        }
     }
 
     LaunchPreview(data, availablePositions) {
@@ -1771,6 +1782,7 @@ function playMove(result) {
         return false;
     }
 
+    console.log(result)
 
     posDY = (8 - result.charAt(1)) * currentChessGame.step //Y de départ
     posDX = (result.charAt(0).charCodeAt(0) - 97) * currentChessGame.step // X de départ

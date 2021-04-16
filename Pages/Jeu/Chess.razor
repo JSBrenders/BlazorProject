@@ -34,16 +34,17 @@
             <div class="recapContainer">
             </div>
             <div id="FEN" class="my-1"></div>
-            <button @onclick="PlayMove" class="btn btn-danger">Laisser l'ordinateur jouer un coup</button>
+            <button @onclick="() => PlayMove()" class="btn btn-danger">Laisser l'ordinateur jouer un coup</button>
             <button class="btn btn-primary mt-3" id="giveUp" style="width:fit-content">Abandonner</button>
             <button class="btn btn-primary mt-3" id="replay" style="width:fit-content">Rejouer</button>
         </div>
     </div>
 </div>
-<button @onclick="LaunchGame" class="btn btn-danger">Lancer un partie ordinateur vs ordinateur</button>
+<button @onclick="LaunchGame" class="btn btn-danger">Lancer une partie ordinateur vs ordinateur</button>
 <button @onclick="StopGame" class="@buttonClass">@buttonLib</button>
 <button @onclick="Reset" class="btn btn-info ml-4 mr-4">Recommencer</button>
 <input type="number" @bind-value="@delay" />
+<button @onclick="LaunchGameVsIA" class="btn btn-primary">Lancer une partie contre l'ordinateur</button>
 
 
 @code {
@@ -52,6 +53,16 @@
     string buttonLib = "stop";
     string buttonClass = "btn btn-danger ml-4";
     int delay = 1500;
+    bool autoGame = false;
+
+    [JSInvokable("PlayAIMove")]
+    public async void PlayAIMove(string state)
+    {
+        Console.Write("test");
+        await PlayMove(state);
+    }
+
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -65,25 +76,38 @@
         stop = !stop;
         buttonLib = stop ? "Continuer" : "Stop";
         buttonClass = stop ? "btn btn-primary ml-4" : "btn btn-danger ml-4";
+        autoGame = buttonLib == "Stop" ? false : true;
         if (!stop)
         {
             LaunchGame();
         }
     }
 
-    async Task PlayMove()
+    async Task PlayMove(string state = null)
     {
         try
         {
-            string data = await jsruntime.InvokeAsync<string>("getState");
+            string data = "";
+            if (state == null)
+            {
+                data = await jsruntime.InvokeAsync<string>("getState");
 
+            }
+            else
+            {
+                data = state;
+            }
             var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
-            //var result = await ("http://localhost:8080/move").PostJsonAsync("{\"fen\": \"" + data + "\"}");
-            //var result = PythonApp.LaunchExternalEngine(data);
+            //var result = await ("http://localhost:8080/move").PostMultipartAsync(mp => mp.AddString("fen", data));
             var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
+            Console.Write(data1.Result);
             if (data1.Result != null && data1.Result != "")
             {
                 await jsruntime.InvokeVoidAsync("playMove", data1.Result);
+            }
+            else
+            {
+
             }
 
         }
@@ -93,8 +117,17 @@
         }
     }
 
+    async Task LaunchGameVsIA()
+    {
+        autoGame = true;
+
+        var dotNetReference = DotNetObjectReference.Create(this);
+        await jsruntime.InvokeVoidAsync("LoadChessBoard", true, false, dotNetReference);
+    }
+
     async Task LaunchGame()
     {
+        autoGame = false;
         //await jsruntime.InvokeVoidAsync("LoadChessBoard");
 
         while (!await jsruntime.InvokeAsync<bool>("GameOver") && !stop)
@@ -102,25 +135,17 @@
             string data = await jsruntime.InvokeAsync<string>("getState");
 
             var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
-            //var result = await ("http://localhost:8080/move").PostJsonAsync("{\"fen\": \"" + data + "\"}");
-            //var result = PythonApp.LaunchExternalEngine(data);
+            //var result = await ("http://localhost:8080/move").PostMultipartAsync(mp => mp.AddString("fen", data));
             var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
             await jsruntime.InvokeVoidAsync("playMove", data1.Result);
 
-            //string result = PythonApp.LaunchExternalEngine(data);
-
-            //if(result.Length > 7)
-            //{
-            //    break;
-            //}
-
-            //await jsruntime.InvokeVoidAsync("playMove", result);
             await Task.Delay(delay);
         }
     }
 
     async Task Reset()
     {
+        autoGame = false;
         await jsruntime.InvokeVoidAsync("LoadChessBoard");
     }
 }
