@@ -1395,6 +1395,7 @@ class ChessGame {
             moveElement.classList.add(this.toWhite ? 'whiteMove' : 'blackMove');
             var move = (this.selectedPiece.id.includes('pawn') ? String.fromCharCode(97 + dataDepart.j) : $(this.selectedPiece).html()) + 'x' + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
             moveElement.innerHTML = move;
+            moveElement.style.cursor = 'pointer';
             $('#row' + this.currentTurn).append(moveElement);
 
         } else {
