@@ -1,7 +1,8 @@
 ﻿//création du plateau
-var dotNetObject;
-var currentChessGame;
-var gameOver;
+let dotNetObject;
+let currentChessGame;
+let gameOver;
+
 function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
     dotNetObject = dotnetObject
@@ -9,7 +10,7 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
     $('#replay').hide();
 
-    var board = document.getElementById("board");
+    let board = document.getElementById("board");
     board.innerHTML = '';
 
     $('.rowRecap').remove();
@@ -17,15 +18,14 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
     //empecher la selection
     $(board).attr('unselectable', 'on');
 
-    var cgHelper = document.createElement('cg-helper');
+    let cgHelper = document.createElement('cg-helper');
     board.appendChild(cgHelper);
-    var cgContainer = document.createElement('cg-container');
+    let cgContainer = document.createElement('cg-container');
     cgHelper.appendChild(cgContainer);
-    var cgBoard = document.createElement('cg-board');
+    let cgBoard = document.createElement('cg-board');
     cgContainer.appendChild(cgBoard);
 
-    var chessGame = new ChessGame();
-
+    let chessGame = new ChessGame();
 
     currentChessGame = chessGame;
     chessGame.autoPlay = autoPlay;
@@ -65,33 +65,19 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
     ];
 
-    //this.WR = ["R","white rook",3];
-    //this.WN = ["N","white night",5];
-    //this.WB = ["B","white biskop",4];
-    //this.WQ = ["Q","white queen",2];
-    //this.WK = ["K","white king",1];
-    //this.WP = ["P","white pawn",6];
-
-    //this.BR = ["R","white rook",9];
-    //this.BN = ["N","white night",11];
-    //this.BB = ["B","white biskop",10];
-    //this.BQ = ["Q","white quenn",8];
-    //this.BK = ["K","white king",7];
-    //this.BP = ["P","white pawn",12];
-
-    var step = $('cg-helper').width();
+    let step = $('cg-helper').width();
 
     chessGame.step = step;
 
-    var indexPiece;
+    let indexPiece;
 
-    for (var i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {
         if (i > 1 && i < 6) {
             continue;
         }
-        for (var j = 0; j < 8; j++) {
+        for (let j = 0; j < 8; j++) {
 
-            var piece = document.createElement("piece");
+            let piece = document.createElement("piece");
 
             if (i == 0) {
                 if (j > 4) {
@@ -116,17 +102,15 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
                 }
             }
 
-            var posY = i * step;
-            var posX = j * step;
+            let posY = i * step;
+            let posX = j * step;
             piece.style.transform = 'translate( ' + posX + 'px, ' + posY + 'px)';
             if (chessGame.listPiece[indexPiece][0].includes('pawn')) {
                 piece.id = chessGame.listPiece[indexPiece][0] + ' ' + String.fromCharCode(65 + j);
             } else {
                 piece.id = chessGame.listPiece[indexPiece][0];
             }
-            if (chessGame.listPiece[indexPiece][0].includes('white')){
-                //piece.style.backgroundColor = ""
-            }
+
             piece.innerHTML = chessGame.listPiece[indexPiece][1];
             cgBoard.appendChild(piece);
 
@@ -135,9 +119,9 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
     //récupération en temps réel de la position de la souris sur le plateau
     $('cg-board').mousemove(function (event) {
-        var relX = event.pageX - $(this).offset().left;
-        var relY = event.pageY - $(this).offset().top;
-        pos = [relX, relY];
+        let relX = event.pageX - $(this).offset().left;
+        let relY = event.pageY - $(this).offset().top;
+        let pos = [relX, relY];
         chessGame.relPos = pos;
     });
 
@@ -150,10 +134,10 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
         chessGame.alreadyPlayed = false;
 
-        var clickX = event.pageX - chessGame.board.offset().left;
-        var clickY = event.pageY - chessGame.board.offset().top;
-        var pos = [clickX, clickY];
-        var newSquare = chessGame.isInListAvailablePos(pos);
+        let clickX = event.pageX - chessGame.board.offset().left;
+        let clickY = event.pageY - chessGame.board.offset().top;
+        let pos = [clickX, clickY];
+        let newSquare = chessGame.isInListAvailablePos(pos);
         //l'on clique ou non sur une case available en preview
         if (newSquare != null) {
             //On clique sur une case de la preview        
@@ -174,11 +158,11 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
 
         if (!chessGame.alreadyPlayed) {
-            var clickX = eventObj.pageX - chessGame.board.offset().left;
-            var clickY = eventObj.pageY - chessGame.board.offset().top;
-            var pos = [clickX, clickY];
+            let clickX = eventObj.pageX - chessGame.board.offset().left;
+            let clickY = eventObj.pageY - chessGame.board.offset().top;
+            let pos = [clickX, clickY];
 
-            var newSquare = chessGame.isInListAvailablePos(pos);
+            let newSquare = chessGame.isInListAvailablePos(pos);
 
             if (newSquare) {
 
@@ -195,29 +179,28 @@ function LoadChessBoard(autoPlay = false, AISide = null, dotnetObject = null) {
 
 
     $(window).resize(function () { RepositionPieces(chessGame) });
-    //chessGame.RepositionPieces();
 
 }
 
 function RepositionPieces(chessGame) {
 
 
-    var step = $('cg-helper').width();
-    var board = document.getElementsByTagName('cg-board')[0];
+    let step = $('cg-helper').width();
+    let board = document.getElementsByTagName('cg-board')[0];
 
-    var boardWidth = $('cg-board').width();
+    let boardWidth = $('cg-board').width();
 
-    var ancienStep = chessGame.step;
+    let ancienStep = chessGame.step;
 
 
     $('piece, square').each(function () {
 
-        var posX = $(this).position().left;
-        var posY = $(this).position().top;
+        let posX = $(this).position().left;
+        let posY = $(this).position().top;
 
 
-        var i = Math.round((posY / ancienStep));
-        var j = Math.round((posX / ancienStep));
+        let i = Math.round((posY / ancienStep));
+        let j = Math.round((posX / ancienStep));
 
         this.style.transform = 'translate( ' + j * step + 'px, ' + i * step + 'px)';
 
@@ -250,19 +233,7 @@ class ChessGame {
         this.castleState = "KQkq";
 
         this.listPiece;
-        //this.WR = ["R","white rook",3];
-        //this.WN = ["N","white night",5];
-        //this.WB = ["B","white biskop",4];
-        //this.WQ = ["Q","white queen",2];
-        //this.WK = ["K","white king",1];
-        //this.WP = ["P","white pawn",6];
 
-        //this.BR = ["R","white rook",9];
-        //this.BN = ["N","white night",11];
-        //this.BB = ["B","white biskop",10];
-        //this.BQ = ["Q","white quenn",8];
-        //this.BK = ["K","white king",7];
-        //this.BP = ["P","white pawn",12];
 
         this.WR = 3;
         this.WN = 5;
@@ -309,24 +280,25 @@ class ChessGame {
         this.relPos;
         //ajout des pièces noires
         this.initialState.push([this.BR, this.BN, this.BB, this.BQ, this.BK, this.BB, this.BN, this.BR])
-        var whitePawnRow = []
-        for (var i = 0; i < 8; i++) {
-            whitePawnRow.push(this.BP);
+        let blackPawnRow = []
+        for (let i = 0; i < 8; i++) {
+            blackPawnRow.push(this.BP);
         }
-        this.initialState.push(whitePawnRow);
+        this.initialState.push(blackPawnRow);
 
         //ajout des lignes vides
-        for (var i = 0; i < 4; i++) {
-            var emptyRow = []
-            for (var j = 0; j < 8; j++) {
+        for (let i = 0; i < 4; i++) {
+            let emptyRow = []
+            for (let j = 0; j < 8; j++) {
                 emptyRow.push(this.E)
             }
             this.initialState.push(emptyRow);
         }
 
         //ajout des pièces blanches
-        var whitePawnRow = []
-        for (var i = 0; i < 8; i++) {
+        let whitePawnRow = []
+
+        for (let i = 0; i < 8; i++) {
             whitePawnRow.push(this.WP);
         }
         this.initialState.push(whitePawnRow);
@@ -346,12 +318,16 @@ class ChessGame {
         //on va renvoyer une liste d'objet pos = (ligne,colonne) de cases libres ou de pièces à prendre
 
         //si on veut un state en particulier (State non null) 
-        var currentState = State == null ? this.currentState : State;
+        let currentState = State == null ? this.currentState : State;
 
-        var freeTiles = [];
+        let freeTiles = [];
 
-        var i = data.i;
-        var j = data.j;
+        let i = data.i;
+        let j = data.j;
+
+        let directionVertical
+        let directionHorizontal
+        let directionDesc
 
         switch (data.p) {
             //roi blanc et roi noir
@@ -359,16 +335,16 @@ class ChessGame {
             case 7:
 
 
-                for (var x = -1; x < 2; x++) {
-                    for (var y = -1; y < 2; y++) {
+                for (let x = -1; x < 2; x++) {
+                    for (let y = -1; y < 2; y++) {
                         if (i + x >= 0 && i + x < 8 && j + y >= 0 && j + y < 8) {
                             if (currentState[i + x][j + y] == 0) {
                                 freeTiles.push([i + x, j + y]);
                             }
                             else {
-                                var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
+                                let dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                                 if (this.canTake(data, dataD)) {
-                                    var pos = [i + x, j + y]
+                                    let pos = [i + x, j + y]
                                     freeTiles.push(pos);
                                 }
                             }
@@ -380,14 +356,14 @@ class ChessGame {
                 //utilisation de la liste 'hasMoved' de l'objet ChessGame pour savoir si on a bougé telle ou telle piece
                 if (!this.hasMoved.containsHTML(this.selectedPiece)) {
 
-                    var listPos = [0, 7]
+                    let listPos = [0, 7]
 
-                    for (var x = 0; x < 2; x++) {
-                        for (var y = 0; y < 2; y++) {
+                    for (let x = 0; x < 2; x++) {
+                        for (let y = 0; y < 2; y++) {
 
-                            var posTour = [listPos[x] * this.step, listPos[y] * this.step];
+                            let posTour = [listPos[x] * this.step, listPos[y] * this.step];
 
-                            var tour = this.getElsAt(posTour, 'piece');
+                            let tour = this.getElsAt(posTour, 'piece');
 
                             if (tour.length == 0) {
                                 continue;
@@ -399,12 +375,12 @@ class ChessGame {
                                     case 7:
                                         if (currentState[data.i][5] == 0 && currentState[data.i][6] == 0) {
 
-                                            var targeted = false;
+                                            let targeted = false;
 
-                                            for (var k = 0; k < this.listTargetedSquare.length; k++) {
+                                            for (const element of this.listTargetedSquare) {
 
-                                                if (Array.isArray(this.listTargetedSquare[k])) {
-                                                    if (this.listTargetedSquare[k].contains([i, 5]) || this.listTargetedSquare[k].contains([i, 6])) {
+                                                if (Array.isArray(element)) {
+                                                    if (element.contains([i, 5]) || element.contains([i, 6])) {
                                                         targeted = true;
                                                     }
                                                 }
@@ -419,12 +395,12 @@ class ChessGame {
                                     case 0:
                                         if (currentState[data.i][1] == 0 && currentState[data.i][2] == 0 && currentState[data.i][3] == 0) {
 
-                                            var targeted = false;
+                                            let targeted = false;
 
-                                            for (var k = 0; k < this.listTargetedSquare.length; k++) {
+                                            for (const element of this.listTargetedSquare) {
 
-                                                if (Array.isArray(this.listTargetedSquare[k])) {
-                                                    if (this.listTargetedSquare[k].contains([i, 1]) || this.listTargetedSquare[k].contains([i, 2]) || this.listTargetedSquare[k].contains([i, 3])) {
+                                                if (Array.isArray(element)) {
+                                                    if (element.contains([i, 1]) || element.contains([i, 2]) || element.contains([i, 3])) {
                                                         targeted = true;
                                                     }
                                                 }
@@ -449,25 +425,17 @@ class ChessGame {
 
                 //horizontal et vertical
                 //vertical - on procède case par case depuis la position de la piece
-                var directionVertical = [1, -1];
-                for (var t = 0; t < 2; t++) {
-                    for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
+                directionVertical = [1, -1];
+                for (let t = 0; t < 2; t++) {
+                    for (let x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
                         if (currentState[x + i][j] == 0) {
-    
-                            //console.log('ici1')
-                            //console.log([x + i, j])
 
                             freeTiles.push([x + i, j]);
                         }
                         else {
-                            var dataD = { i: x + i, j: j, p: currentState[x + i][j] }
+                            let dataD = { i: x + i, j: j, p: currentState[x + i][j] }
                             if (this.canTake(data, dataD)) {
-                                var pos = [x + i, j]
-
-
-                               //console.log('ici2')
-                               // console.log(pos)
-                                
+                                let pos = [x + i, j]
 
                                 freeTiles.push(pos);
                             }
@@ -476,55 +444,40 @@ class ChessGame {
                     }
                 }
                 //horizontal
-                var directionHorizontal = [1, -1];
-                for (var t = 0; t < 2; t++) {
-                    for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
+                directionHorizontal = [1, -1];
+                for (let t = 0; t < 2; t++) {
+                    for (let y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
                         if (currentState[i][j + y] == 0) {
-
-                            //console.log('ici3')
-                            //console.log([i,j+y])
                             
                             freeTiles.push([i, j + y]);
                         }
                         else {
-                            var dataD = { i: i, j: j + y, p: currentState[i][j + y] }
+                            let dataD = { i: i, j: j + y, p: currentState[i][j + y] }
                             if (this.canTake(data, dataD)) {
-                                var pos = [i, j + y]
+                                let pos = [i, j + y]
 
-                                //console.log('ici4')
-                                //console.log(pos)
-                                
                                 freeTiles.push(pos);
                             }
                             break;
                         }
                     }
                 }
-
-                //diagonales 
-                //descendante
-                var directionDesc = [1, -1];
-                for (var t1 = 0; t1 < 2; t1++) {
-                    for (var t2 = 0; t2 < 2; t2++) {
-                        for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
+                directionDesc = [1, -1];
+                for (let t1 = 0; t1 < 2; t1++) {
+                    for (let t2 = 0; t2 < 2; t2++) {
+                        for (let x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
 
                             if (currentState[i + x][j + y] == 0) {
-
-                                //console.log('ici5')
-                                //console.log([i + x,j + y])
 
                                 freeTiles.push([x + i, j + y]);
                             }
                             else {
-                                var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
+                                let dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                                 if (data.p == dataD.p) {
                                     continue;
                                 }
                                 if (this.canTake(data, dataD)) {
-                                    var pos = [x + i, j + y]
-
-                                    //console.log('ici5')
-                                    //console.log(pos)
+                                    let pos = [x + i, j + y]
                                     freeTiles.push(pos);
                                 }
 
@@ -541,17 +494,17 @@ class ChessGame {
             case 9:
                 //horizontal et vertical
                 //vertical - on procède case par case depuis la position de la piece
-                var directionVertical = [1, -1];
-                for (var t = 0; t < 2; t++) {
-                    for (var x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
+                directionVertical = [1, -1];
+                for (let t = 0; t < 2; t++) {
+                    for (let x = directionVertical[t]; x + i < 8 && x + i >= 0; x += directionVertical[t]) {
                         if (currentState[x + i][j] == 0) {
-                            ;
+                            
                             freeTiles.push([x + i, j]);
                         }
                         else {
-                            var dataD = { i: x + i, j: j, p: currentState[x + i][j] }
+                            let dataD = { i: x + i, j: j, p: currentState[x + i][j] }
                             if (this.canTake(data, dataD)) {
-                                var pos = [x + i, j]
+                                let pos = [x + i, j]
                                 freeTiles.push(pos);
                             }
                             break;
@@ -559,17 +512,17 @@ class ChessGame {
                     }
                 }
                 //horizontal
-                var directionHorizontal = [1, -1];
-                for (var t = 0; t < 2; t++) {
-                    for (var y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
+                directionHorizontal = [1, -1];
+                for (let t = 0; t < 2; t++) {
+                    for (let y = directionHorizontal[t]; y + j < 8 && y + j >= 0; y += directionHorizontal[t]) {
 
                         if (currentState[i][j + y] == 0) {
                             freeTiles.push([i, j + y]);
                         }
                         else {
-                            var dataD = { i: i, j: j + y, p: currentState[i][j + y] }
+                            let dataD = { i: i, j: j + y, p: currentState[i][j + y] }
                             if (this.canTake(data, dataD)) {
-                                var pos = [i, j + y]
+                                let pos = [i, j + y]
                                 freeTiles.push(pos);
                             }
                             break;
@@ -581,23 +534,22 @@ class ChessGame {
             //fou blanc et fou noir
             case 4:
             case 10:
-                //diagonales 
-                //descendante
-                var directionDesc = [1, -1];
-                for (var t1 = 0; t1 < 2; t1++) {
-                    for (var t2 = 0; t2 < 2; t2++) {
-                        for (var x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
+                //diagonales descendante
+                directionDesc = [1, -1];
+                for (let t1 = 0; t1 < 2; t1++) {
+                    for (let t2 = 0; t2 < 2; t2++) {
+                        for (let x = directionDesc[t1], y = directionDesc[t2]; x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0; x += directionDesc[t1], y += directionDesc[t2]) {
 
                             if (currentState[i + x][j + y] == 0) {
                                 freeTiles.push([x + i, j + y]);
                             }
                             else {
-                                var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
+                                let dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                                 if (data.p == dataD.p) {
                                     continue;
                                 }
                                 if (this.canTake(data, dataD)) {
-                                    var pos = [x + i, j + y]
+                                    let pos = [x + i, j + y]
                                     freeTiles.push(pos);
                                 }
                                 break;
@@ -613,22 +565,22 @@ class ChessGame {
             case 11:
 
                 //diagonales en L
-                var directionI = [2, 1, -1, -2, -2, -1, 1, 2];
-                var directionJ = [1, 2, 2, 1, -1, -2, -2, -1];
+                let directionI = [2, 1, -1, -2, -2, -1, 1, 2];
+                let directionJ = [1, 2, 2, 1, -1, -2, -2, -1];
 
-                for (var t = 0; t < directionI.length; t++) {
+                for (let t = 0; t < directionI.length; t++) {
 
-                    var x = directionI[t];
-                    var y = directionJ[t];
+                    let x = directionI[t];
+                    let y = directionJ[t];
 
                     if (x + i < 8 && x + i >= 0 && y + j < 8 && y + j >= 0) {
                         if (currentState[i + x][j + y] == 0) {
                             freeTiles.push([x + i, j + y]);
                         }
                         else {
-                            var dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
+                            let dataD = { i: i + x, j: j + y, p: currentState[i + x][j + y] }
                             if (this.canTake(data, dataD)) {
-                                var pos = [x + i, j + y]
+                                let pos = [x + i, j + y]
                                 freeTiles.push(pos);
                             }
                         }
@@ -640,7 +592,7 @@ class ChessGame {
             case 6:
             case 12:
 
-                var direction = 1;
+                let direction = 1;
 
                 if (this.isWhiteParPiece(data.p)) {
                     direction = -1;
@@ -648,8 +600,8 @@ class ChessGame {
 
                 //si les pions sont sur leur ligne de départ alors +2 sinon + 1
                 if ((this.isWhiteParPiece(data.p) && data.i == 6) || (this.isBlackParPiece(data.p) && data.i == 1)) {
-                    for (var t = 1; t < 3; t++) {
-                        var x = direction * t;
+                    for (let t = 1; t < 3; t++) {
+                        let x = direction * t;
                         if (x + i < 8 && x + i >= 0) {
 
                             if (currentState[i + x][j] == 0) {
@@ -658,23 +610,28 @@ class ChessGame {
                         }
                     }
                 } else {
-                    var x = direction;
+                    let x = direction;
                     if (x + i < 8 && x + i >= 0) {
-                        if (currentState[i + x][j] == 0) {
-                            freeTiles.push([x + i, j]);
+                        try {
+                            if (currentState[i + x][j] == 0) {
+                                freeTiles.push([x + i, j]);
+                            }
+                        }
+                        catch (ex) {
+                            console.log("Excpetion : " + ex)
                         }
                     }
                 }
 
                 //On check les diagonales en avant pour les potentielles cibles
-                var directionDiag = [1, -1];
-                for (var t = 0; t < directionDiag.length; t++) {
-                    if (i + direction < 8 && i + direction >= 0 && j + directionDiag[t] < 8 && j + directionDiag[t] >= 0) {
+                let directionDiag = [1, -1];
+                for (const element of directionDiag) {
+                    if (i + direction < 8 && i + direction >= 0 && j + element < 8 && j + element >= 0) {
 
-                        if (currentState[direction + i][j + directionDiag[t]] != 0) {
-                            var dataD = { i: direction + i, j: j + directionDiag[t], p: currentState[i + direction][j + directionDiag[t]] }
+                        if (currentState[direction + i][j + element] != 0) {
+                            let dataD = { i: direction + i, j: j + element, p: currentState[i + direction][j + element] }
                             if (this.canTake(data, dataD)) {
-                                var pos = [i + direction, j + directionDiag[t]]
+                                let pos = [i + direction, j + element]
                                 freeTiles.push(pos);
                             }
                         }
@@ -682,17 +639,17 @@ class ChessGame {
                 }
 
                 //Gestion en-passant
-                var sides = [1, -1];
+                let sides = [1, -1];
                 if ((this.isWhiteParPiece(data.p) && i == 3) || (this.isBlackParPiece(data.p) && i == 4)) {
-                    for (k = 0; k < 2; k++) {
+                    for (let k = 0; k < 2; k++) {
 
                         if (j + sides[k] < 8 && j + sides[k] >= 0) {
 
                             if (currentState[i][j + sides[k]] == 6 || currentState[i][j + sides[k]] == 12) {
 
-                                var pos = [(j + sides[k]) * this.step, i * this.step]
+                                let pos = [(j + sides[k]) * this.step, i * this.step]
 
-                                var pawn = this.getElsAt(pos, 'piece');
+                                let pawn = this.getElsAt(pos, 'piece');
 
                                 if (pawn.length > 0 && this.pawnJustAdvancedOfTwo != null) {
 
@@ -718,78 +675,73 @@ class ChessGame {
     }
 
 
-
     //Utilisation :
     //Si checkSelfKing est null on est dans le cas où on veut vérifier si l'adversaire nous a mis en échec
-    //Si checkSelfKing est non null on est dans le cas où on veut vérifier notre coup va ou non nous mettre en échec
+    //Si checkSelfKing est non null on est dans le cas où on veut vérifier si notre coup va ou non nous mettre en échec
     isInCheck(isWhiteTurn, checkSelfKing = null, State = null) {
-        for (var i = 0; i < 8; i++) {
-            for (var j = 0; j < 8; j++) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
 
-                var currentState = State == null ? this.currentState : State;
+                let currentState = State == null ? this.currentState : State;
 
-                var piece = currentState[i][j];
-                var data = { i: i, j: j, p: piece };
+                let piece = currentState[i][j];
+                let data = { i: i, j: j, p: piece };
 
-                //Dans le cas de checkSelfKing null on ne prend que les piece (pas les cases vides) et les pièces adverse et on regarde notre roi
-                //Dans le cas de checkSelfKing non null on prend les pieces adverses et on regarde notre roi dans le state 'provisoire'
-                if ((this.isWhiteParPiece(data.p) && !isWhiteTurn || this.isBlackParPiece(data.p) && isWhiteTurn) && data.p != 0) {
-                    var targets = this.checkPossibleTiles(data, State);
-                    for (var k = 0; k < targets.length; k++) {
-                        var targetType = currentState[targets[k][0]][targets[k][1]];
-
-                        //var kingColor;
-                        //if (isWhiteTurn && !Self == null) {
-                        //    kingColor = 
-                        //}
-
-                        if (targetType == (isWhiteTurn ? 1 : 7)) {
-                            return true;
-                        }
-                    }
-                }
+                if (this.KingIsTargeted(data, isWhiteTurn, currentState)) {
+                    return true;
+                }                              
             }
         }
         return false;
     }
 
+    KingIsTargeted(data, isWhiteTurn, State) {
+        //Dans le cas de checkSelfKing null on ne prend que les piece (pas les cases vides) et les pièces adverse et on regarde notre roi
+        //Dans le cas de checkSelfKing non null on prend les pieces adverses et on regarde notre roi dans le state 'provisoire'
+        if ((this.isWhiteParPiece(data.p) && !isWhiteTurn || this.isBlackParPiece(data.p) && isWhiteTurn) && data.p != this.E) {
+            let targets = this.checkPossibleTiles(data, State);
+            for (const element of targets) {
+                let targetType = State[element[0]][element[1]];
+
+                if (targetType == (isWhiteTurn ? this.WK : this.BK)) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    //renvoie true si le coup va mettre le roi en échec
     willBeInCheck(dataD, dataA, isWhiteTurn) {
-        //si le coup va mettre le roi en échec, renvoie true
 
-        var state = _.cloneDeep(this.currentState);
+        let state = _.cloneDeep(this.currentState);
 
-        var posDepart = [dataD.i, dataD.j];
-        var posArrivee = [dataA.i, dataA.j];
+        let posDepart = [dataD.i, dataD.j];
+        let posArrivee = [dataA.i, dataA.j];
 
         state[posDepart[0]][posDepart[1]] = 0;
         state[posArrivee[0]][posArrivee[1]] = dataD.p;
 
-        if (this.isInCheck(isWhiteTurn, true, state)) {
-            return true;
-        }
-
-        return false;
+        return !!(this.isInCheck(isWhiteTurn, true, state));
     }
 
 
     //p représente la couleur du joueur dont on vérifie s'il est mis en échec et mat (entre 1 et 6 blanc, entre 7 et 12 noir)
     checkMate(p) {
 
-        for (var i = 0; i < 8; i++) {
+        for (let i = 0; i < 8; i++) {
             //on regarde les pièces du joueur et dès qu'on trouve un coup possible on retourne faux, sinon c'est qu'il n'a aucun coup possible et on retourne true
-            for (var j = 0; j < 8; j++) {
-                var piece = this.currentState[i][j];
+            for (let j = 0; j < 8; j++) {
+                let piece = this.currentState[i][j];
 
-                var data = { i: i, j: j, p: piece };
+                let data = { i: i, j: j, p: piece };
 
-                //if (this.getColor(p) == this.getColor(piece)) {
                 if (this.isSameColorParType(p, piece)) {
 
-                    var availablePositions = this.checkPossibleTiles(data);
+                    let availablePositions = this.checkPossibleTiles(data);
 
-                    for (var k = 0; k < availablePositions.length; k++) {
+                    for (const element of availablePositions) {
 
-                        var dataTarget = { i: availablePositions[k][0], j: availablePositions[k][1], p: piece };
+                        let dataTarget = { i: element[0], j: element[1], p: piece };
 
                         if (!this.willBeInCheck(data, dataTarget, this.isWhiteParPiece(data.p))) {
                             return false;
@@ -804,10 +756,10 @@ class ChessGame {
     //p représente la couleur du vainqueur (entre 1 et 6 blanc, entre 7 et 12 noir) forfeit est un paramètre optionnel pour gérer l'abandon
     endGame(forfeit = false, draw = false) {
 
-        var fen = this.generateFEN();
-        var colorLastTurn = fen.split(' ')[1];
-        var ffColor = colorLastTurn == 'w' ? 'Blancs' : 'Noirs';
-        var winnerColor = colorLastTurn == 'w' ? forfeit ? 'Blancs' : 'Noirs' : forfeit ? 'Noirs' : 'Blancs';
+        let fen = this.generateFEN();
+        let colorLastTurn = fen.split(' ')[1];
+        let ffColor = colorLastTurn == 'w' ? 'Blancs' : 'Noirs';
+        let winnerColor = colorLastTurn == 'w' ? forfeit ? 'Blancs' : 'Noirs' : forfeit ? 'Noirs' : 'Blancs';
 
         if (draw) {
             $('#trait').html('Match Nul');
@@ -829,8 +781,8 @@ class ChessGame {
 
     //peut prendre la piece adverse ou non
     canTake(dataD, dataA) {
-        var posD = [dataD.i, dataD.j]
-        var posA = [dataA.i, dataA.j]
+        let posD = [dataD.i, dataD.j]
+        let posA = [dataA.i, dataA.j]
 
         return !this.isSameColorParType(dataD.p, dataA.p);
     }
@@ -853,35 +805,36 @@ class ChessGame {
 
         this.resetPreview();
 
-        var chessGame = this;
+        let chessGame = this;
 
         this.selectedPiece = null;
 
         this.resetSelection();
 
-        var board = this.board;
+        let board = this.board;
 
         if (event != null && pos == null) {
-            var relX = event.pageX - board.offset().left;
-            var relY = event.pageY - board.offset().top;
+            let relX = event.pageX - board.offset().left;
+            let relY = event.pageY - board.offset().top;
             pos = [relX, relY];
         }
 
 
-        var elements = this.getElsAt(pos);
+        let elements = this.getElsAt(pos);
 
         this.posOrigin = this.getSquareAtPos(pos);
 
-        var listSelectedPiece = elements.filter(function () {
+        let listSelectedPiece = elements.filter(function () {
             return this.tagName == 'PIECE' && chessGame.isColorTurn(this);
         });
+
 
         if (listSelectedPiece.length != 0) {
 
             this.selectedPiece = listSelectedPiece[0];
             this.initialSelectedPiecePos = this.getPosFromElement(this.selectedPiece, true);
 
-            var ghostSquare = this.createSquareAtPos(pos, 'square', 'selected');
+            let ghostSquare = this.createSquareAtPos(pos, 'square', 'selected');
             $(ghostSquare).html(this.selectedPiece.innerHTML);
 
             //On enleve la classe selected piece de la piece précédente
@@ -890,13 +843,13 @@ class ChessGame {
             $(this.selectedPiece).addClass('selectedPiece');
 
             $(chessGame.selectedPiece).css('transition-duration', '');
-            var step = this.step;
+            let step = this.step;
 
             //Gestion mousemove
             $('cg-board').mousemove(function (event) {
 
-                var relX = event.pageX - $(this).offset().left;
-                var relY = event.pageY - $(this).offset().top;
+                let relX = event.pageX - $(this).offset().left;
+                let relY = event.pageY - $(this).offset().top;
                 pos = [relX, relY];
                 chessGame.relPos = pos;
 
@@ -909,18 +862,17 @@ class ChessGame {
             //Gestion Preview
             //Récupération des cases disponibles
 
-            var smallPos = this.getPosFromElement(this.selectedPiece, true);
+            let smallPos = this.getPosFromElement(this.selectedPiece, true);
 
-            var i = smallPos[0];
-            var j = smallPos[1];
+            let i = Math.round(smallPos[0],0);
+            let j = Math.round(smallPos[1],0);
 
-            var pieceType = this.getPieceTypeFromEl(this.selectedPiece);
+            let pieceType = this.getPieceTypeFromEl(this.selectedPiece);
 
-            var data = { i: i, j: j, p: pieceType };
+            let data = { i: i, j: j, p: pieceType };
 
-            var availablePositions = this.checkPossibleTiles(data)
-
-
+            let availablePositions = this.checkPossibleTiles(data)
+            
 
             this.LaunchPreview(data, availablePositions);
 
@@ -942,21 +894,19 @@ class ChessGame {
 
 
         //le + 1 sert à éviter de prendre les cases adjacentes lorsqu'on utilise la position toute en haut à gauche pour identifier une case
-        var top = pos[1] + 1;
-        var left = pos[0] + 1;
+        let top = pos[1] + 1;
+        let left = pos[0] + 1;
 
-        var selectedPiece = $(this.selectedPiece);
+        let selectedPiece = $(this.selectedPiece);
 
-        var chessGame = this;
-
-        var step = this.step;
+        let step = this.step;
         return $(this.board)
             .find(type == null ? 'square, piece' : type == 'square' ? type : 'piece')
             .filter(function () {
-                var actualOffsetTop = (Math.abs($(this).offsetParent().offset().top - $(this).offset().top));
-                var actualOffsetLeft = (Math.abs($(this).offsetParent().offset().left - $(this).offset().left));
+                let actualOffsetTop = (Math.abs($(this).offsetParent().offset().top - $(this).offset().top));
+                let actualOffsetLeft = (Math.abs($(this).offsetParent().offset().left - $(this).offset().left));
 
-                var found = top.between(actualOffsetTop, actualOffsetTop + step) && left.between(actualOffsetLeft, actualOffsetLeft + step);
+                let found = top.between(actualOffsetTop, actualOffsetTop + step) && left.between(actualOffsetLeft, actualOffsetLeft + step);
                 return selectedPiece != $(this) && found;
             });
     }
@@ -964,13 +914,13 @@ class ChessGame {
     //renvoie une position (haut gauche) qui représente une case
     getSquareAtPos(pos) {
 
-        var top = pos[1];
-        var left = pos[0];
+        let top = pos[1];
+        let left = pos[0];
 
-        var step = this.step;
+        let step = this.step;
 
-        var posTop = top - (top % step);
-        var posLeft = left - (left % step);
+        let posTop = top - (top % step);
+        let posLeft = left - (left % step);
 
         return [posLeft, posTop];
     }
@@ -980,15 +930,15 @@ class ChessGame {
         //Si il n'y a pas une square a cette position
         if (this.getElsAt(pos).filter(function () { return this.tagName == 'SQUARE' }).length == 0) {
 
-            var top = pos[1];
-            var left = pos[0];
+            let top = pos[1];
+            let left = pos[0];
 
-            var step = this.step;
+            let step = this.step;
 
-            var posTop = top - (top % step);
-            var posLeft = left - (left % step);
+            let posTop = top - (top % step);
+            let posLeft = left - (left % step);
 
-            var square = document.createElement(!type ? 'square' : type);
+            let square = document.createElement(!type ? 'square' : type);
 
             square.style.transform = 'translate(' + posLeft + 'px, ' + posTop + 'px)';
             if (css != null) {
@@ -1002,14 +952,14 @@ class ChessGame {
 
     getPosFromElement(el, small = false) {
 
-        var board = this.board;
+        let board = this.board;
 
-        var relY = $(el).offset().top - board.offset().top;
+        let relY = $(el).offset().top - board.offset().top;
 
-        var relX = $(el).offset().left - board.offset().left;
-        var pos1 = [relY, relX];
+        let relX = $(el).offset().left - board.offset().left;
+        let pos1 = [relY, relX];
 
-        var pos2 = this.getSquareAtPos(pos1);
+        let pos2 = this.getSquareAtPos(pos1);
 
         if (small) {
             return this.getSmallPos(pos2);
@@ -1019,13 +969,13 @@ class ChessGame {
     }
 
     getSmallPos(pos) {
-        return [pos[0] == 0 ? 0 : (pos[0] / this.step), pos[1] == 0 ? 0 : (pos[1] / this.step)]
+        return [pos[0] == 0 ? 0 : Math.round((pos[0] / this.step), 0), pos[1] == 0 ? 0 : Math.round((pos[1] / this.step),0)]
     }
 
     getPieceTypeFromEl(el) {
-        for (var i = 0; i < this.listPiece.length; i++) {
-            if (el.id.includes(this.listPiece[i][0])) {
-                return this.listPiece[i][2];
+        for (const element of this.listPiece) {
+            if (el.id.includes(element[0])) {
+                return element[2];
             }
         }
     }
@@ -1043,21 +993,18 @@ class ChessGame {
     }
 
     listTargets(isWhiteTurn) {
-        var chessGame = this;
+        let chessGame = this;
         this.listTargetedSquare = [];
         $('piece').each(function () {
             if (this.id.includes(isWhiteTurn ? 'white' : 'black')) {
 
-                var pos = chessGame.getPosFromElement(this);
-                var type = chessGame.getPieceTypeFromEl(this);
-                var data = { i: pos[0] / chessGame.step, j: pos[1] / chessGame.step, p: type }
+                let pos = chessGame.getPosFromElement(this);
+                let type = chessGame.getPieceTypeFromEl(this);
+                let data = { i: Math.round(pos[0] / chessGame.step, 0), j: Math.round(pos[1] / chessGame.step,0), p: type }
 
 
-                var listTargets = chessGame.checkPossibleTiles(data);
-                if (type == 2) {
-                    //console.log(this)
-                    //console.log(listTargets)
-                }
+                let listTargets = chessGame.checkPossibleTiles(data);
+
 
                 chessGame.listTargetedSquare.push(listTargets);
             }
@@ -1067,13 +1014,13 @@ class ChessGame {
     //supprime les square hover
     resetHover(allHover, pos = null) {
 
-        var chessGame = this;
+        let chessGame = this;
 
         if (!allHover) {
             $('square.hover').each(function (index, el) {
-                var relX = Math.abs(chessGame.board.offset().left - $(el).offset().left);/* - (step / 2);*/
-                var relY = Math.abs(chessGame.board.offset().top - $(el).offset().top); /*- (step / 2);*/
-                var posEl = [relX, relY];
+                let relX = Math.abs(chessGame.board.offset().left - $(el).offset().left);/* - (step / 2);*/
+                let relY = Math.abs(chessGame.board.offset().top - $(el).offset().top); /*- (step / 2);*/
+                let posEl = [relX, relY];
 
                 if (!chessGame.getSquareAtPos(posEl).equals(chessGame.getSquareAtPos(pos))) {
 
@@ -1143,13 +1090,13 @@ class ChessGame {
 
     isInListAvailablePos(pos) {
 
-        var foundSquare = null;
+        let foundSquare = null;
 
-        for (var i = 0; i < this.listTileAvailable.length; i++) {
+        for (const element of this.listTileAvailable) {
 
-            if (pos[0].between(this.listTileAvailable[i][1], this.listTileAvailable[i][1] + this.step) && pos[1].between(this.listTileAvailable[i][0], this.listTileAvailable[i][0] + this.step)) {
+            if (pos[0].between(element[1], element[1] + this.step) && pos[1].between(element[0], element[0] + this.step)) {
 
-                foundSquare = [this.listTileAvailable[i][1], this.listTileAvailable[i][0]];
+                foundSquare = [element[1], element[0]];
 
             }
         }
@@ -1171,7 +1118,7 @@ class ChessGame {
 
     playMove2(newSquare,drag, automaticPlay = false) {
 
-        var nbPieceBefore = $('piece').length;
+        let nbPieceBefore = $('piece').length;
 
         this.pawnJustAdvancedOfTwo = null;
         this.enPassantPos = null;
@@ -1179,22 +1126,22 @@ class ChessGame {
         $('square.oldDest, square.newDest').remove();
         $('.check').remove();
 
-        var posDepart = this.initialSelectedPiecePos;
-        var typePieceDepart = this.getPieceTypeFromEl(this.selectedPiece);
+        let posDepart = this.initialSelectedPiecePos;
+        let typePieceDepart = this.getPieceTypeFromEl(this.selectedPiece);
 
-        var dataDepart = { i: posDepart[0], j: posDepart[1], p: typePieceDepart };
+        let dataDepart = { i: posDepart[0], j: posDepart[1], p: typePieceDepart };
 
-        var chessGame = this;
+        let chessGame = this;
 
-        var target = this.getElsAt(newSquare, 'piece').filter(function (el) {
+        let target = this.getElsAt(newSquare, 'piece').filter(function (el) {
 
-            var found = !chessGame.isSameColor(chessGame.selectedPiece, this);
+            let found = !chessGame.isSameColor(chessGame.selectedPiece, this);
 
             return found;
 
         });
 
-        var dataArrivee = { i: newSquare[1] / this.step, j: newSquare[0] / this.step, p: target.length > 0 ? this.getPieceTypeFromEl(target[0]) : 0 };
+        let dataArrivee = { i: Math.round(newSquare[1] / this.step, 0), j: Math.round(newSquare[0] / this.step,0), p: target.length > 0 ? this.getPieceTypeFromEl(target[0]) : 0 };
 
         //on vérifie tout d'abord que l'on ne va pas se mettre en échec (fonction willBeInCheck)
         if (this.willBeInCheck(dataDepart, dataArrivee, this.toWhite)) {
@@ -1205,7 +1152,7 @@ class ChessGame {
             $(chessGame.selectedPiece).css('transition-duration', '0.4s');
         }
 
-        var castle = false;
+        let castle = false;
         //Code de déplacement
         //castle
         if (this.selectedPiece.id.includes('king') && (Math.abs(dataDepart.j - dataArrivee.j) > 1)) {
@@ -1215,7 +1162,7 @@ class ChessGame {
 
             if (dataArrivee.j - dataDepart.j > 0) {
                 //castle king side
-                var tour = this.getElsAt([7 * this.step, dataDepart.i * this.step]);
+                let tour = this.getElsAt([7 * this.step, dataDepart.i * this.step]);
                 if (!automaticPlay) {
                     $(tour[0]).css('transition-duration', '0.4s');
                 }
@@ -1230,7 +1177,7 @@ class ChessGame {
 
             } else {
                 //castle queen side
-                var tour = this.getElsAt([0, dataDepart.i * this.step]);
+                let tour = this.getElsAt([0, dataDepart.i * this.step]);
 
                 if (!automaticPlay) {
                     $(tour[0]).css('transition-duration', '0.4s');
@@ -1250,7 +1197,7 @@ class ChessGame {
 
             $(this.selectedPiece).css('transform', 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)');
             //on supprime le pion pris enpassant
-            var targetEnPassant = this.getElsAt([newSquare[0], newSquare[1] + this.step * (this.toWhite ? 1 : -1)], 'piece');
+            let targetEnPassant = this.getElsAt([newSquare[0], newSquare[1] + this.step * (this.toWhite ? 1 : -1)], 'piece');
 
             this.currentState[dataDepart.i][dataArrivee.j] = 0;
 
@@ -1268,30 +1215,30 @@ class ChessGame {
 
             if (!automaticPlay) {
 
-                var promotion = document.createElement('div');
+                let promotion = document.createElement('div');
                 promotion.id = 'promotion-choice';
                 promotion.classList.add('top');
 
-                for (var t = 0; t < 4; t++) {
+                for (let t = 0; t < 4; t++) {
 
                     if (dataArrivee.i == 0) {
                         //Promotion piece blanche
-                        var pieceProm = document.createElement('squarePromotion');
+                        let pieceProm = document.createElement('squarePromotion');
                         pieceProm.style.top = t * 12.5 + '%';
                         pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
 
-                        var piece = document.createElement('piecePromotion');
+                        let piece = document.createElement('piecePromotion');
                         piece.innerHTML = this.listProm[t][0];
                         piece.id = (this.listProm[t][1])
                         pieceProm.appendChild(piece)
                         promotion.appendChild(pieceProm);
                     } else if (dataArrivee.i == 7) {
                         //Promotion piece noire
-                        var pieceProm = document.createElement('squarePromotion');
+                        let pieceProm = document.createElement('squarePromotion');
                         pieceProm.style.top = 87.5 - (t * 12.5) + '%';
                         pieceProm.style.left = (87.5 - (12.5 * (7 - dataArrivee.j))) + '%';
 
-                        var piece = document.createElement('piecePromotion');
+                        let piece = document.createElement('piecePromotion');
                         piece.innerHTML = this.listProm[t + 4][0];
                         piece.id = (this.listProm[t + 4][1])
                         pieceProm.appendChild(piece)
@@ -1304,8 +1251,7 @@ class ChessGame {
                 $('squarePromotion').click(function (event) {
                     chessGame.selectedPiece.innerHTML = $(event.target).html();
                     chessGame.selectedPiece.id = event.target.id;
-                    //this.selectedPiece = chessGame.getElsAt(chessGame.initialSelectedPiecePos)[0];
-                    //console.log(chessGame.initialSelectedPiecePos);
+
                     chessGame.playMove2(newSquare, true);
                     $('#promotion-choice').remove();
                 });
@@ -1316,14 +1262,11 @@ class ChessGame {
                     //Promotion piece blanche
                     this.selectedPiece.innerHTML = this.listProm[0][0];
                     this.selectedPiece.id = this.listProm[0][1];
-                    //this.selectedPiece = this.getElsAt(this.initialSelectedPiecePos)[0];
 
-                    //this.playMove2(newSquare);
-                    //return;
                 } else if (dataArrivee.i == 7) {
                     this.selectedPiece.id = this.listProm[4][1];
                     this.selectedPiece.innerHTML = this.listProm[4][0];
-                    //this.selectedPiece = this.getElsAt(this.initialSelectedPiecePos)[0];
+
                     this.playMove2(newSquare, true);
                 }
             }
@@ -1353,17 +1296,18 @@ class ChessGame {
         this.resetPreview();
         $('.selected').remove();
 
-        var InewSquare = newSquare[1] / this.step;
-        var JnewSquare = newSquare[0] / this.step;
-        var posArrivee = [InewSquare, JnewSquare];
+        let InewSquare = newSquare[1] / this.step;
+        let JnewSquare = newSquare[0] / this.step;
+        let posArrivee = [InewSquare, JnewSquare];
 
-        var x = posDepart[0];
-        var y = posDepart[1];
+        let x = posDepart[0];
+        let y = posDepart[1];
 
+        let typePiece;
 
         if (!castle) {
             this.currentState[x][y] = 0;
-            var typePiece = this.getPieceTypeFromEl(this.selectedPiece);
+            typePiece = this.getPieceTypeFromEl(this.selectedPiece);
             this.currentState[posArrivee[0]][posArrivee[1]] = typePiece;
         }
 
@@ -1374,13 +1318,13 @@ class ChessGame {
 
         if (this.toWhite) {
 
-            var rowRecap = document.createElement('div');
+            let rowRecap = document.createElement('div');
             rowRecap.classList.add('rowRecap');
             rowRecap.style.top = ((this.currentTurn == 1 ? 0 : (this.currentTurn - 1)) * 5) + '%'
             rowRecap.id = 'row' + this.currentTurn;
             $('.recapContainer').append(rowRecap);
 
-            var index = document.createElement('div');
+            let index = document.createElement('div');
             index.classList.add('index');
             index.innerHTML = this.currentTurn;
             $(rowRecap).append(index);
@@ -1388,20 +1332,23 @@ class ChessGame {
             index.style.left = "0%";
         }
 
+        let moveElement;
+        let move;
+
         if (target.length == 1) {
 
             //recap si capture
-            var moveElement = document.createElement('div');
+            moveElement = document.createElement('div');
             moveElement.classList.add(this.toWhite ? 'whiteMove' : 'blackMove');
-            var move = (this.selectedPiece.id.includes('pawn') ? String.fromCharCode(97 + dataDepart.j) : $(this.selectedPiece).html()) + 'x' + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
+            move = (this.selectedPiece.id.includes('pawn') ? String.fromCharCode(97 + dataDepart.j) : $(this.selectedPiece).html()) + 'x' + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
             moveElement.innerHTML = move;
             moveElement.style.cursor = 'pointer';
             $('#row' + this.currentTurn).append(moveElement);
 
         } else {
-            var moveElement = document.createElement('div');
+            moveElement = document.createElement('div');
             moveElement.classList.add(this.toWhite ? 'whiteMove' : 'blackMove');
-            var move = (this.selectedPiece.id.includes('pawn') ? '' : $(this.selectedPiece).html()) + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
+            move = (this.selectedPiece.id.includes('pawn') ? '' : $(this.selectedPiece).html()) + String.fromCharCode(97 + dataArrivee.j) + (8 - dataArrivee.i);
             moveElement.innerHTML = move;
             $('#row' + this.currentTurn).append(moveElement);
         }
@@ -1411,10 +1358,9 @@ class ChessGame {
         $(moveElement).click(function () {
             event.stopPropagation();
             $('square.oldDest, square.newDest').remove();
-            //$('square.oldDestT, square.newDestT').remove();
 
-            var oldDestT = document.createElement('square');
-            var newDestT = document.createElement('square');
+            let oldDestT = document.createElement('square');
+            let newDestT = document.createElement('square');
 
             oldDestT.classList.add('oldDest');
             newDestT.classList.add('newDest');
@@ -1423,22 +1369,12 @@ class ChessGame {
             chessGame.board.append(oldDestT);
             chessGame.board.append(newDestT);
 
-            //console.log($(this).data().posA[0])
-            //console.log($(this).data().posA[0] * chessGame.getStep())
-            //console.log(chessGame.step);
-            //console.log(chessGame.getStep());
-
-            //console.log(oldDestT)
-            //console.log(newDestT)
-            //$('oldDest').css('transform', 'translate()');
             $('.oldDest').css('transform', 'translate( ' + ($(this).data().posD[1] * chessGame.getStep()) + 'px, ' + ($(this).data().posD[0] * chessGame.getStep()) + 'px)');
             $('.newDest').css('transform', 'translate( ' + ($(this).data().posA[1] * chessGame.getStep()) + 'px, ' + ($(this).data().posA[0] * chessGame.getStep()) + 'px)');
 
-            console.log('translate( ' + ($(this).data().posD[0] * chessGame.getStep()) + 'px, ' + ($(this).data().posD[1] * chessGame.getStep()) + 'px)')
-
         });
 
-        var element = document.getElementsByClassName('recapContainer')[0]
+        let element = document.getElementsByClassName('recapContainer')[0]
         element.scrollTop = element.scrollHeight;
 
         this.listMoves.push(move);
@@ -1452,17 +1388,17 @@ class ChessGame {
         this.toWhite = !this.toWhite;
         this.turn = !this.turn;
 
-        var chessGameL = this;
-        var dataArrivee = { i: InewSquare, j: JnewSquare, p: typePiece }
-        var listNewTargets = this.checkPossibleTiles(dataArrivee);
+        let chessGameL = this;
+        dataArrivee = { i: InewSquare, j: JnewSquare, p: typePiece }
+        let listNewTargets = this.checkPossibleTiles(dataArrivee);
 
         $('#trait').html(this.toWhite ? 'Trait aux blancs' : 'Trait aux noirs');
 
         this.listTargets(!this.toWhite);
 
         //Creation des squares oldDest et newDest
-        var oldDest = document.createElement('square');
-        var newDest = document.createElement('square');
+        let oldDest = document.createElement('square');
+        let newDest = document.createElement('square');
 
         oldDest.classList.add('oldDest');
         newDest.classList.add('newDest');
@@ -1474,17 +1410,17 @@ class ChessGame {
         newDest.style.transform = 'translate( ' + newSquare[0] + 'px, ' + newSquare[1] + 'px)';
 
         //Gestion check
-        var check = false;
-        var end = false;
+        let check = false;
+        let end = false;
         listNewTargets.forEach(function (element) {
-            var i = element[0];
-            var j = element[1];
+            let i = element[0];
+            let j = element[1];
             if (chessGameL.currentState[i][j] == 1 || chessGameL.currentState[i][j] == 7) {
                 check = true;
-                var pos = [j * chessGame.step, i * chessGame.step]
-                var roiElement = chessGameL.getElsAt(pos, 'piece');
+                let pos = [j * chessGame.step, i * chessGame.step]
+                let roiElement = chessGameL.getElsAt(pos, 'piece');
 
-                var checkSquare = chessGame.createSquareAtPos(pos, 'square', 'check');
+                let checkSquare = chessGame.createSquareAtPos(pos, 'square', 'check');
 
                 //on vérifie si on a une situation de checkMate
                 if (chessGameL.checkMate(chessGameL.toWhite ? 1 : 7)) {
@@ -1502,20 +1438,20 @@ class ChessGame {
         //Si pas de check avec la piece bougée on regarde quand même les discovered check
         if (!check) {
 
-            for (var k = 0; k < this.listTargetedSquare.length; k++) {
+            for (const element of this.listTargetedSquare) {
 
-                var listPos = this.listTargetedSquare[k];
+                let listPos = element;
 
-                for (var x = 0; x < listPos.length; x++) {
+                for (const element of listPos) {
 
-                    var pos = [listPos[x][1] * this.step, listPos[x][0] * this.step];
-                    var target = this.getElsAt(pos, 'piece');
+                    let pos = [element[1] * this.step, element[0] * this.step];
+                    let target = this.getElsAt(pos, 'piece');
                     if (target.length > 0) {
 
                         if (target[0].id == (this.toWhite ? 'white king' : 'black king')) {
 
                             check = true;
-                            var checkSquare = this.createSquareAtPos(pos, 'square', 'check');
+                            let checkSquare = this.createSquareAtPos(pos, 'square', 'check');
                         }
                     }
                 }
@@ -1528,7 +1464,7 @@ class ChessGame {
         this.VisualizeState(this.currentState, this.currentTurn, this.toWhite);
 
         //si tour ou roi on marque met la piece dans la liste des hasMoved pour le castle
-        var type = this.getPieceTypeFromEl(this.selectedPiece);
+        let type = this.getPieceTypeFromEl(this.selectedPiece);
         if ([1, 7, 3, 9].includes(type)) {
             this.hasMoved.push(this.selectedPiece);
             switch (type) {
@@ -1562,8 +1498,8 @@ class ChessGame {
             this.castleState = '-';
         }
 
-        var nbPieceAfter = $('piece').length;
-        var pieceTaken = nbPieceBefore - nbPieceAfter > 0;
+        let nbPieceAfter = $('piece').length;
+        let pieceTaken = nbPieceBefore - nbPieceAfter > 0;
 
         if (!pieceTaken && !this.selectedPiece.id.includes('pawn')) {
             this.halfClock++;
@@ -1575,11 +1511,10 @@ class ChessGame {
         this.listTileAvailable = [];
 
         //Affichage du FEN
-        var fen = this.generateFEN();
+        let fen = this.generateFEN();
         $('#FEN').html(this.generateFEN());
 
         if (this.autoPlay && this.AISide == this.turn) {
-            console.log(typeof (dotNetObject))
             dotNetObject.invokeMethodAsync('PlayAIMove', fen);
         }
     }
@@ -1588,14 +1523,14 @@ class ChessGame {
 
         this.resetPreview();
 
-        for (var i = 0; i < availablePositions.length; i++) {
+        for (const element of availablePositions) {
 
-            var iTarget = availablePositions[i][0];
-            var jTarget = availablePositions[i][1];
-            var targetElement = $(this.getSquareId(iTarget, jTarget));
+            let iTarget = element[0];
+            let jTarget = element[1];
+            let targetElement = $(this.getSquareId(iTarget, jTarget));
 
-            var targetPieceType = this.currentState[iTarget][jTarget];
-            var dataTarget = { i: iTarget, j: jTarget, p: targetPieceType };
+            let targetPieceType = this.currentState[iTarget][jTarget];
+            let dataTarget = { i: iTarget, j: jTarget, p: targetPieceType };
 
             if (this.willBeInCheck(data, dataTarget, this.isWhiteParPiece(data.p))) {
                 continue;
@@ -1603,7 +1538,7 @@ class ChessGame {
 
 
 
-            var pos = [availablePositions[i][0] * this.step, availablePositions[i][1] * this.step];
+            let pos = [element[0] * this.step, element[1] * this.step];
             this.listTileAvailable.push(pos)
 
 
@@ -1614,15 +1549,15 @@ class ChessGame {
 
     AfficherPreview(data, dataTarget, targetElement) {
 
-        var posTarget = [dataTarget.j * this.step, dataTarget.i * this.step]
+        let posTarget = [dataTarget.j * this.step, dataTarget.i * this.step]
 
         if (dataTarget.p == 0) {
             //case vide
-            var square = this.createSquareAtPos(posTarget, 'square', 'move-dest')
+            let square = this.createSquareAtPos(posTarget, 'square', 'move-dest')
 
         } else {
             //piece adverse
-            var square = this.createSquareAtPos(posTarget, 'square', 'move-destTarget');
+            let square = this.createSquareAtPos(posTarget, 'square', 'move-destTarget');
 
         }
     }
@@ -1636,7 +1571,7 @@ class ChessGame {
 
         if (($('#detail').is(':checked')) || index == null) {
             State.forEach(ligne => {
-                var row = "";
+                let row = "";
                 ligne.forEach(col => {
                     row += col + " ";
                 });
@@ -1659,27 +1594,26 @@ class ChessGame {
 
         this.board.html('');
 
-        for (var i = 0; i < 8; i++) {
-            for (var j = 0; j < 8; j++) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
 
-                var posY = i * this.step;
-                var posX = j * this.step;
-                var piece = state[i][j];
+                let posY = i * this.step;
+                let posX = j * this.step;
+                let piece = state[i][j];
 
                 if (piece != 0) {
-                    var pieceElement = document.createElement("piece");
+                    let pieceElement = document.createElement("piece");
 
-                    for (var k = 0; k < this.listPiece.length; k++) {
-                        if (this.listPiece[k][2] == piece) {
-                            pieceElement.id = this.listPiece[k][0];
-                            pieceElement.innerHTML = this.listPiece[k][1];
+                    for (const element of this.listPiece) {
+                        if (element[2] == piece) {
+                            pieceElement.id = element[0];
+                            pieceElement.innerHTML = element[1];
                             break;
                         }
                     }
 
                     this.board.append(pieceElement);
 
-                    //$(pieceElement).css('transition-duration', '1s');
                     pieceElement.style.transform = 'translate( ' + posX + 'px, ' + posY + 'px)';
                 }
 
@@ -1693,17 +1627,17 @@ class ChessGame {
 
     listAllAvailableTiles() {
 
-        var positionObject = []
+        let positionObject = []
 
-        for (var i = 0; i < 8; i++) {
-            for (var j = 0; j < 8; j++) {
-                var type = this.currentState[i][j]
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                let type = this.currentState[i][j]
                 if (type != 0 && this.isColorTurnParType(type)) {
-                    var posD = [i, j];
-                    var data = { i: i, j: j, p: type }
-                    var listPosAvailable = this.checkPossibleTiles(data);
+                    let posD = [i, j];
+                    let data = { i: i, j: j, p: type }
+                    let listPosAvailable = this.checkPossibleTiles(data);
                     if (listPosAvailable.length > 0) {
-                        var dataPos = { posD: posD, listPosA: listPosAvailable };
+                        let dataPos = { posD: posD, listPosA: listPosAvailable };
                         positionObject.push(dataPos);
                     }
                 }
@@ -1713,12 +1647,12 @@ class ChessGame {
     }
 
     generateFEN() {
-        var FEN = "";
-        for (var i = 0; i < 8; i++) {
-            var nbVide = 0;
-            for (var j = 0; j < 8; j++) {
+        let FEN = "";
+        for (let i = 0; i < 8; i++) {
+            let nbVide = 0;
+            for (let j = 0; j < 8; j++) {
 
-                var type = currentChessGame.currentState[i][j];
+                let type = currentChessGame.currentState[i][j];
 
                 if (type != 0) {
                     if (nbVide > 0) {
@@ -1743,12 +1677,12 @@ class ChessGame {
 
         //privilèges de rock
         FEN += currentChessGame.castleState + ' ';
-        var enPassant = '-';
+        let enPassant = '-';
         if (currentChessGame.pawnJustAdvancedOfTwo != null) {
 
-            var pos = this.enPassantPos;
+            let pos = this.enPassantPos;
 
-            var direction = currentChessGame.isWhiteParPiece(currentChessGame.getPieceTypeFromEl(currentChessGame.pawnJustAdvancedOfTwo)) ? 1 : -1;
+            let direction = currentChessGame.isWhiteParPiece(currentChessGame.getPieceTypeFromEl(currentChessGame.pawnJustAdvancedOfTwo)) ? 1 : -1;
 
             enPassant = String.fromCharCode(97 + pos[1]) + '' + (8 - (pos[0] + direction));  
         }
@@ -1785,11 +1719,11 @@ function playMove(result) {
 
     console.log(result)
 
-    posDY = (8 - result.charAt(1)) * currentChessGame.step //Y de départ
-    posDX = (result.charAt(0).charCodeAt(0) - 97) * currentChessGame.step // X de départ
+    let posDY = (8 - result.charAt(1)) * currentChessGame.step //Y de départ
+    let posDX = (result.charAt(0).charCodeAt(0) - 97) * currentChessGame.step // X de départ
 
-    posAX = (8-result.charAt(3)) * currentChessGame.step
-    posAY = (result.charAt(2).charCodeAt(0) - 97) * currentChessGame.step
+    let posAX = (8-result.charAt(3)) * currentChessGame.step
+    let posAY = (result.charAt(2).charCodeAt(0) - 97) * currentChessGame.step
 
 
 
@@ -1805,8 +1739,8 @@ function getState() {
 }
 
 function equalState(state1, state2) {
-    var equals = true;
-    for (var i = 0; i < 8; i++) {
+    let equals = true;
+    for (let i = 0; i < 8; i++) {
         if (!state1[i].equals(state2[i])) {
             equals = false;
         }
@@ -1815,16 +1749,16 @@ function equalState(state1, state2) {
 }
 
 function findPieceInList(p) {
-    for (var i = 0; i < currentChessGame.listPiece.length; i++) {
-        if (currentChessGame.listPiece[i][2] == p) {
-            return currentChessGame.listPiece[i][3];
+    for (const element of currentChessGame.listPiece) {
+        if (element[2] == p) {
+            return element[3];
         }
     }
 }
 
 Array.prototype.contains = function (subArray) {
 
-    var contain = false;
+    let contain = false;
 
     this.forEach(function (element) {
         if (subArray.equals(element)) {
@@ -1837,9 +1771,9 @@ Array.prototype.contains = function (subArray) {
 }
 
 Array.prototype.containsHTML = function (element) {
-    for (var i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
 
-        var elementList = this[i];
+        let elementList = this[i];
 
         if (elementList instanceof jQuery) {
             elementList = elementList.get(0);
@@ -1854,13 +1788,13 @@ Array.prototype.containsHTML = function (element) {
 
 Array.prototype.equals = function (Array2) {
 
-    var equals = true;
+    let equals = true;
 
     if (this.length != Array2.length) {
         return false;
     }
 
-    for (var i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
         if (this[i] != Array2[i]) {
             equals = false;
         }
@@ -1869,9 +1803,9 @@ Array.prototype.equals = function (Array2) {
 }
 
 Array.prototype.deleteHTMLElement = function (element) {
-    for (var i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
         if (this[i].attr('id') == element.attr('id')) {
-            var deletedElement = this.splice(i, 1);
+            let deletedElement = this.splice(i, 1);
             return deletedElement;
         }
     }
@@ -1882,15 +1816,15 @@ Array.prototype.deleteHTMLElement = function (element) {
 function resetIndications() {
     $('.dot').remove();
     $('.targetInner').each(function () {
-        var innerHtml = $(this).html();
-        var parent = $(this).parent().parent();
+        let innerHtml = $(this).html();
+        let parent = $(this).parent().parent();
         $(parent).html(innerHtml);
     });
     $('.targetOuter').remove();
 }
 
 Number.prototype.between = function (a, b) {
-    var min = Math.min(a, b),
+    let min = Math.min(a, b),
         max = Math.max(a, b);
     return this >= min && this <= max;
 };

@@ -97,8 +97,8 @@
             {
                 data = state;
             }
-            var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
-            //var result = await ("http://localhost:8080/move").PostMultipartAsync(mp => mp.AddString("fen", data));
+            //var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
+            var result = await ("http://localhost:8080/move").PostMultipartAsync(mp => mp.AddString("fen", data));
             var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
             Console.Write(data1.Result);
             if (data1.Result != null && data1.Result != "")
@@ -134,8 +134,8 @@
         {
             string data = await jsruntime.InvokeAsync<string>("getState");
 
-            var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
-            //var result = await ("http://localhost:8080/move").PostMultipartAsync(mp => mp.AddString("fen", data));
+            //var result = await ("https://frozen-shore-76228.herokuapp.com/move").PostMultipartAsync(mp => mp.AddString("fen", data));
+            var result = await ("http://localhost:8080/move").PostMultipartAsync(mp => mp.AddString("fen", data));
             var data1 = result.ResponseMessage.Content.ReadAsAsync<string>();
             await jsruntime.InvokeVoidAsync("playMove", data1.Result);
 
