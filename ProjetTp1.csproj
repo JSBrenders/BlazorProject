@@ -50,7 +50,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0-preview.2.21154.6" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.0-preview.2.21161.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="RestSharp" Version="106.11.8-alpha.0.12" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
   </ItemGroup>
